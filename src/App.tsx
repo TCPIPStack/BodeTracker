@@ -245,7 +245,15 @@ function App() {
         itemHeight: 8,
       },
       tooltip: {
-        trigger: "item",
+        trigger: "axis",
+        axisPointer: {
+          type: "line",
+          snap: true,
+          lineStyle: {
+            color: "rgba(148, 163, 184, 0.36)",
+            width: 1,
+          },
+        },
         appendToBody: true,
         backgroundColor: "rgba(15, 23, 42, 0.96)",
         borderColor: "rgba(255, 255, 255, 0.14)",
@@ -258,7 +266,7 @@ function App() {
         formatter: (params: unknown) => {
           const item = Array.isArray(params) ? params[0] : params;
 
-          if (item.seriesName === "Kauf" && Array.isArray(item.data)) {
+          if (!Array.isArray(params) && item.seriesName === "Kauf" && Array.isArray(item.data)) {
             const purchase = item.data[2] as Purchase;
 
             return `
@@ -277,27 +285,35 @@ function App() {
             `;
           }
 
-          if (item.seriesName === "Bitcoin Preis" && Array.isArray(item.data)) {
-            return `
-              <div class="chart-tooltip compact">
-                <strong>${item.seriesName}</strong>
-                <span>${formatDate(Number(item.data[0]))}</span>
-                <span>${formatEur(Number(item.data[1]), 0)}</span>
-              </div>
-            `;
-          }
+          if (Array.isArray(params)) {
+            const lineItems = params.filter(
+              (axisItem) =>
+                axisItem?.seriesName !== "Kauf" &&
+                (axisItem?.seriesName === "Bitcoin Preis" ||
+                  axisItem?.seriesName === "Ø Kaufpreis" ||
+                  axisItem?.seriesName === "Investiertes Kapital" ||
+                  axisItem?.seriesName === "Euro-Wert") &&
+                Array.isArray(axisItem.data),
+            );
 
-          if (
-            (item.seriesName === "Ø Kaufpreis" ||
-              item.seriesName === "Investiertes Kapital" ||
-              item.seriesName === "Euro-Wert") &&
-            Array.isArray(item.data)
-          ) {
+            if (lineItems.length === 0) {
+              return "";
+            }
+
+            const timestamp = Number(lineItems[0].data[0]);
+            const rows = lineItems
+              .map(
+                (axisItem) => `
+                  <dt>${axisItem.seriesName}</dt>
+                  <dd>${formatEur(Number(axisItem.data[1]), 0)}</dd>
+                `,
+              )
+              .join("");
+
             return `
-              <div class="chart-tooltip compact">
-                <strong>${item.seriesName}</strong>
-                <span>${formatDate(Number(item.data[0]))}</span>
-                <span>${formatEur(Number(item.data[1]), 0)}</span>
+              <div class="chart-tooltip">
+                <strong>${formatDate(timestamp)}</strong>
+                <dl>${rows}</dl>
               </div>
             `;
           }
@@ -459,6 +475,33 @@ function App() {
           xAxisIndex: 0,
           yAxisIndex: 0,
           data: purchaseChartData,
+          tooltip: {
+            trigger: "item",
+            formatter: (params: unknown) => {
+              const item = Array.isArray(params) ? params[0] : params;
+
+              if (!Array.isArray(item?.data)) {
+                return "";
+              }
+
+              const purchase = item.data[2] as Purchase;
+
+              return `
+                <div class="chart-tooltip">
+                  <strong>BTC-Kauf</strong>
+                  <span>${formatDate(purchase.timestamp)} · ${purchase.time.split(".")[0]}</span>
+                  <dl>
+                    <dt>BTC</dt><dd>${formatBtc(purchase.btc)}</dd>
+                    <dt>Kaufbetrag</dt><dd>${formatEur(purchase.eur, 2)}</dd>
+                    <dt>Gebühr</dt><dd>${formatEur(purchase.fee, 2)}</dd>
+                    <dt>Gesamtkosten</dt><dd>${formatEur(purchase.totalCost, 2)}</dd>
+                    <dt>Kaufpreis</dt><dd>${formatEur(purchase.quotePrice || purchase.totalCost / purchase.btc, 0)}</dd>
+                  </dl>
+                  <small>${purchase.transactionId}</small>
+                </div>
+              `;
+            },
+          },
           symbol: "circle",
           symbolSize: (data: unknown) => symbolSize((data as [number, number, Purchase])[2].totalCost),
           itemStyle: {
