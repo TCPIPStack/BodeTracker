@@ -3,3 +3,5 @@ dist
 .DS_Store
 *.tsbuildinfo
 *.csv
+!examples/
+!examples/sample-transactions.csv

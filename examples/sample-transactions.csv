@@ -1,0 +1,13 @@
+Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Paid Currency,Received / Paid Amount,Fee currency,Fee amount,Status,Transaction ID,Address
+Europe/Berlin,2026-05-18,09:24:12.000,buy,BTC,0.00341256,EUR,58607,EUR,-200.00,EUR,0.50,Completed,sample-buy-20260518-001,
+Europe/Berlin,2026-04-29,18:10:44.000,buy,BTC,0.00807619,EUR,61910,EUR,-500.00,EUR,1.25,Completed,sample-buy-20260429-002,
+Europe/Berlin,2026-03-14,07:35:03.000,buy,BTC,0.00489237,EUR,61320,EUR,-300.00,EUR,0.75,Completed,sample-buy-20260314-003,
+Europe/Berlin,2026-02-03,21:02:19.000,buy,BTC,0.01084599,EUR,55320,EUR,-600.00,EUR,1.50,Completed,sample-buy-20260203-004,
+Europe/Berlin,2026-01-16,13:44:51.000,buy,BTC,0.00787402,EUR,63500,EUR,-500.00,EUR,1.25,Completed,sample-buy-20260116-005,
+Europe/Berlin,2025-12-07,11:12:28.000,buy,BTC,0.00644522,EUR,62062,EUR,-400.00,EUR,1.00,Completed,sample-buy-20251207-006,
+Europe/Berlin,2025-10-22,16:56:35.000,buy,BTC,0.00918274,EUR,65340,EUR,-600.00,EUR,1.50,Completed,sample-buy-20251022-007,
+Europe/Berlin,2025-09-09,08:18:40.000,buy,BTC,0.00492348,EUR,60932,EUR,-300.00,EUR,0.75,Completed,sample-buy-20250909-008,
+Europe/Berlin,2025-07-31,20:31:05.000,buy,BTC,0.01134752,EUR,66094,EUR,-750.00,EUR,1.88,Completed,sample-buy-20250731-009,
+Europe/Berlin,2025-06-12,10:07:17.000,buy,BTC,0.00684932,EUR,58400,EUR,-400.00,EUR,1.00,Completed,sample-buy-20250612-010,
+Europe/Berlin,2025-04-26,14:49:22.000,buy,BTC,0.00552486,EUR,54300,EUR,-300.00,EUR,0.75,Completed,sample-buy-20250426-011,
+Europe/Berlin,2025-03-04,19:21:38.000,buy,BTC,0.01214575,EUR,57634,EUR,-700.00,EUR,1.75,Completed,sample-buy-20250304-012,

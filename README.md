@@ -38,6 +38,14 @@ Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Pa
 
 Only completed BTC buy transactions are visualized.
 
+An example file with synthetic data is available at:
+
+```text
+examples/sample-transactions.csv
+```
+
+You can use it to test the app or as a template for converting your own transaction history into the supported format.
+
 ## Build
 
 Create a production build:
