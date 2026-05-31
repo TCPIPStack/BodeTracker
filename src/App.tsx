@@ -89,6 +89,14 @@ function App() {
     const minCost = Math.min(...purchases.map((purchase) => purchase.totalCost), 0);
     const maxCost = Math.max(...purchases.map((purchase) => purchase.totalCost), 1);
     const activeRange = visibleRange ?? fullRange;
+    type PortfolioPointMeta = {
+      averageCost: number;
+      btc: number;
+      invested: number;
+      portfolioValue: number;
+      price: number;
+    };
+    type PortfolioSeriesPoint = [number, number, PortfolioPointMeta];
     const getChartPriceAt = (timestamp: number) => {
       if (prices.length === 0) {
         return 0;
@@ -132,9 +140,9 @@ function App() {
       const progress = (timestamp - previous.timestamp) / (next.timestamp - previous.timestamp);
       return previous.price + (next.price - previous.price) * progress;
     };
-    const averageCostData: [number, number][] = [];
-    const investedCapitalData: [number, number][] = [];
-    const portfolioValueData: [number, number][] = [];
+    const averageCostData: PortfolioSeriesPoint[] = [];
+    const investedCapitalData: PortfolioSeriesPoint[] = [];
+    const portfolioValueData: PortfolioSeriesPoint[] = [];
     let purchaseIndex = 0;
     let cumulativeBtc = 0;
     let cumulativeCost = 0;
@@ -150,7 +158,20 @@ function App() {
       }
 
       if (cumulativeBtc > 0) {
-        averageCostData.push([timestamp, cumulativeCost / cumulativeBtc]);
+        const averageCost = cumulativeCost / cumulativeBtc;
+        const price = getChartPriceAt(timestamp);
+
+        averageCostData.push([
+          timestamp,
+          averageCost,
+          {
+            averageCost,
+            btc: cumulativeBtc,
+            invested: cumulativeCost,
+            portfolioValue: cumulativeBtc * price,
+            price,
+          },
+        ]);
       }
     }
 
@@ -166,8 +187,18 @@ function App() {
       }
 
       if (cumulativeBtc > 0) {
-        investedCapitalData.push([pricePoint.timestamp, cumulativeCost]);
-        portfolioValueData.push([pricePoint.timestamp, cumulativeBtc * pricePoint.price]);
+        const averageCost = cumulativeCost / cumulativeBtc;
+        const portfolioValue = cumulativeBtc * pricePoint.price;
+        const meta = {
+          averageCost,
+          btc: cumulativeBtc,
+          invested: cumulativeCost,
+          portfolioValue,
+          price: pricePoint.price,
+        };
+
+        investedCapitalData.push([pricePoint.timestamp, cumulativeCost, meta]);
+        portfolioValueData.push([pricePoint.timestamp, portfolioValue, meta]);
       }
     }
 
@@ -292,11 +323,26 @@ function App() {
               item.seriesName === "Euro-Wert") &&
             Array.isArray(item.data)
           ) {
+            const meta = item.data[2] as PortfolioPointMeta | undefined;
+            const valueLabel =
+              item.seriesName === "Ø Kaufpreis"
+                ? "Ø Kaufpreis"
+                : item.seriesName === "Investiertes Kapital"
+                  ? "Investiert"
+                  : "Euro-Wert";
+
             return `
-              <div class="chart-tooltip compact">
+              <div class="chart-tooltip">
                 <strong>${item.seriesName}</strong>
                 <span>${formatDate(Number(item.data[0]))}</span>
-                <span>${formatEur(Number(item.data[1]), 0)}</span>
+                <dl>
+                  <dt>${valueLabel}</dt><dd>${formatEur(Number(item.data[1]), 0)}</dd>
+                  <dt>Ø Kaufpreis</dt><dd>${formatEur(meta?.averageCost ?? 0, 0)}</dd>
+                  <dt>Investiert</dt><dd>${formatEur(meta?.invested ?? 0, 0)}</dd>
+                  <dt>BTC Bestand</dt><dd>${formatBtc(meta?.btc ?? 0)}</dd>
+                  <dt>BTC Preis</dt><dd>${formatEur(meta?.price ?? 0, 0)}</dd>
+                  <dt>Euro-Wert</dt><dd>${formatEur(meta?.portfolioValue ?? 0, 0)}</dd>
+                </dl>
               </div>
             `;
           }
@@ -451,7 +497,6 @@ function App() {
             width: 3,
             type: "dashed",
           },
-          tooltip: { show: false },
         },
         {
           name: "Kauf",
