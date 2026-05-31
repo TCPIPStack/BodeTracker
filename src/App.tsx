@@ -306,6 +306,11 @@ function App() {
             const isPortfolioPanel = lineItems.some(
               (axisItem) => axisItem.seriesName === "Investiertes Kapital" || axisItem.seriesName === "Euro-Wert",
             );
+            const tooltipItems = isPortfolioPanel
+              ? lineItems.filter((axisItem) => axisItem.seriesName !== "Bitcoin Preis")
+              : lineItems.filter(
+                  (axisItem) => axisItem.seriesName === "Bitcoin Preis" || axisItem.seriesName === "Ø Kaufpreis",
+                );
             const priceAtTimestamp = getChartPriceAt(timestamp);
             const investedAtTimestamp = purchases
               .filter((purchase) => purchase.timestamp <= timestamp)
@@ -322,8 +327,7 @@ function App() {
               </dt>
               <dd class="tooltip-value-${profitLossClass}">${profitLoss >= 0 ? "+" : ""}${formatEur(profitLoss, 0)}</dd>
             `;
-            const rows = lineItems
-              .filter((axisItem) => !isPortfolioPanel || axisItem.seriesName !== "Bitcoin Preis")
+            const rows = tooltipItems
               .map(
                 (axisItem) => `
                   <dt>
