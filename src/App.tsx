@@ -303,6 +303,9 @@ function App() {
             }
 
             const timestamp = Number(lineItems[0].data[0]);
+            const isPortfolioPanel = lineItems.some(
+              (axisItem) => axisItem.seriesName === "Investiertes Kapital" || axisItem.seriesName === "Euro-Wert",
+            );
             const priceAtTimestamp = getChartPriceAt(timestamp);
             const investedAtTimestamp = purchases
               .filter((purchase) => purchase.timestamp <= timestamp)
@@ -319,22 +322,16 @@ function App() {
               </dt>
               <dd class="tooltip-value-${profitLossClass}">${profitLoss >= 0 ? "+" : ""}${formatEur(profitLoss, 0)}</dd>
             `;
-            const hasBitcoinPriceRow = lineItems.some((axisItem) => axisItem.seriesName === "Bitcoin Preis");
             const rows = lineItems
+              .filter((axisItem) => !isPortfolioPanel || axisItem.seriesName !== "Bitcoin Preis")
               .map(
                 (axisItem) => `
-                  <dt class="${axisItem.seriesName === "Bitcoin Preis" ? `tooltip-profit-${profitLossClass}` : ""}">
+                  <dt>
                     <span class="tooltip-dot ${
-                      axisItem.seriesName === "Bitcoin Preis"
-                        ? "profit-verlust"
-                        : String(axisItem.seriesName).toLowerCase().replaceAll(" ", "-").replace("ø", "avg")
-                    }"></span>${axisItem.seriesName === "Bitcoin Preis" ? "Profit/Verlust" : axisItem.seriesName}
+                      String(axisItem.seriesName).toLowerCase().replaceAll(" ", "-").replace("ø", "avg")
+                    }"></span>${axisItem.seriesName}
                   </dt>
-                  <dd class="${axisItem.seriesName === "Bitcoin Preis" ? `tooltip-value-${profitLossClass}` : ""}">${
-                    axisItem.seriesName === "Bitcoin Preis"
-                      ? `${profitLoss >= 0 ? "+" : ""}${formatEur(profitLoss, 0)}`
-                      : formatEur(Number(axisItem.data[1]), 0)
-                  }</dd>
+                  <dd>${formatEur(Number(axisItem.data[1]), 0)}</dd>
                 `,
               )
               .join("");
@@ -342,7 +339,7 @@ function App() {
             return `
               <div class="chart-tooltip">
                 <strong>${formatDate(timestamp)}</strong>
-                <dl>${rows}${hasBitcoinPriceRow ? "" : profitLossRow}</dl>
+                <dl>${rows}${isPortfolioPanel ? profitLossRow : ""}</dl>
               </div>
             `;
           }
