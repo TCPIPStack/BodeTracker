@@ -371,7 +371,7 @@ input {
 .chart-panel {
   flex: 1 1 auto;
   position: relative;
-  min-height: 680px;
+  min-height: 780px;
   margin-top: 42px;
   border-top: 1px solid rgba(148, 163, 184, 0.12);
 }
@@ -536,7 +536,7 @@ input {
   }
 
   .chart-panel {
-    min-height: 640px;
+    min-height: 760px;
     margin-top: 26px;
   }
 

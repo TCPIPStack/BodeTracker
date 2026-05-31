@@ -90,6 +90,8 @@ function App() {
     const maxCost = Math.max(...purchases.map((purchase) => purchase.totalCost), 1);
     const activeRange = visibleRange ?? fullRange;
     const averageCostData: [number, number][] = [];
+    const investedCapitalData: [number, number][] = [];
+    const portfolioValueData: [number, number][] = [];
     let purchaseIndex = 0;
     let cumulativeBtc = 0;
     let cumulativeCost = 0;
@@ -106,6 +108,23 @@ function App() {
 
       if (cumulativeBtc > 0) {
         averageCostData.push([timestamp, cumulativeCost / cumulativeBtc]);
+      }
+    }
+
+    purchaseIndex = 0;
+    cumulativeBtc = 0;
+    cumulativeCost = 0;
+
+    for (const pricePoint of prices) {
+      while (purchaseIndex < purchases.length && purchases[purchaseIndex].timestamp <= pricePoint.timestamp) {
+        cumulativeBtc += purchases[purchaseIndex].btc;
+        cumulativeCost += purchases[purchaseIndex].totalCost;
+        purchaseIndex += 1;
+      }
+
+      if (cumulativeBtc > 0) {
+        investedCapitalData.push([pricePoint.timestamp, cumulativeCost]);
+        portfolioValueData.push([pricePoint.timestamp, cumulativeBtc * pricePoint.price]);
       }
     }
 
@@ -129,6 +148,14 @@ function App() {
     const step = range < 18_000 ? 2_500 : 5_000;
     const yMin = Math.max(0, Math.floor((low - padding) / step) * step);
     const yMax = Math.ceil((high + padding) / step) * step;
+    const visiblePortfolioValues = [...investedCapitalData, ...portfolioValueData]
+      .filter((point) => !activeRange || (point[0] >= activeRange[0] && point[0] <= activeRange[1]))
+      .map((point) => point[1])
+      .filter((value) => Number.isFinite(value) && value > 0);
+    const portfolioMax = visiblePortfolioValues.length > 0 ? Math.max(...visiblePortfolioValues) : 1;
+    const portfolioPadding = Math.max(portfolioMax * 0.08, 1_000);
+    const portfolioStep = portfolioMax < 100_000 ? 10_000 : 50_000;
+    const portfolioYMax = Math.ceil((portfolioMax + portfolioPadding) / portfolioStep) * portfolioStep;
     const symbolSize = (cost: number) => {
       if (maxCost === minCost) {
         return 18;
@@ -139,14 +166,25 @@ function App() {
 
     return {
       animationDuration: 550,
-      backgroundColor: "transparent",
-      color: ["#ff9918", "#20c997", "#ff6b35"],
-      grid: {
-        top: 54,
-        right: 80,
-        left: 44,
-        bottom: 78,
+      axisPointer: {
+        link: [{ xAxisIndex: "all" }],
       },
+      backgroundColor: "transparent",
+      color: ["#ff9918", "#20c997", "#ff6b35", "#60a5fa", "#38bdf8"],
+      grid: [
+        {
+          top: 56,
+          right: 88,
+          left: 76,
+          height: "56%",
+        },
+        {
+          top: "75%",
+          right: 88,
+          left: 76,
+          height: "13%",
+        },
+      ],
       legend: {
         top: 8,
         left: "center",
@@ -200,51 +238,115 @@ function App() {
             `;
           }
 
+          if (
+            (item.seriesName === "Ø Kaufpreis" ||
+              item.seriesName === "Investiertes Kapital" ||
+              item.seriesName === "Euro-Wert") &&
+            Array.isArray(item.data)
+          ) {
+            return `
+              <div class="chart-tooltip compact">
+                <strong>${item.seriesName}</strong>
+                <span>${formatDate(Number(item.data[0]))}</span>
+                <span>${formatEur(Number(item.data[1]), 0)}</span>
+              </div>
+            `;
+          }
+
           return "";
         },
       },
-      xAxis: {
-        type: "time",
-        axisLine: { lineStyle: { color: "#1f2937" } },
-        axisTick: { show: false },
-        axisLabel: {
-          color: "#9ca3af",
-          fontSize: 12,
-          margin: 16,
+      xAxis: [
+        {
+          type: "time",
+          gridIndex: 0,
+          axisLine: { lineStyle: { color: "#1f2937" } },
+          axisTick: { show: false },
+          axisLabel: { show: false },
+          splitLine: {
+            show: true,
+            lineStyle: { color: "rgba(148, 163, 184, 0.08)" },
+          },
         },
-        splitLine: {
-          show: true,
-          lineStyle: { color: "rgba(148, 163, 184, 0.08)" },
+        {
+          type: "time",
+          gridIndex: 1,
+          axisLine: { lineStyle: { color: "#1f2937" } },
+          axisTick: { show: false },
+          axisLabel: {
+            color: "#9ca3af",
+            fontSize: 12,
+            margin: 14,
+          },
+          splitLine: {
+            show: true,
+            lineStyle: { color: "rgba(148, 163, 184, 0.06)" },
+          },
         },
-      },
-      yAxis: {
-        type: "value",
-        min: yMin,
-        max: yMax,
-        scale: true,
-        position: "right",
-        name: "Bitcoin Preis (€)",
-        nameLocation: "middle",
-        nameGap: 60,
-        nameTextStyle: {
-          color: "#d1d5db",
-          fontSize: 12,
-          fontWeight: 700,
+      ],
+      yAxis: [
+        {
+          type: "value",
+          gridIndex: 0,
+          min: yMin,
+          max: yMax,
+          scale: true,
+          position: "right",
+          name: "Bitcoin Preis (€)",
+          nameLocation: "middle",
+          nameGap: 66,
+          nameTextStyle: {
+            color: "#d1d5db",
+            fontSize: 12,
+            fontWeight: 700,
+          },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: {
+            color: "#9ca3af",
+            fontSize: 12,
+            formatter: (value: number) => `${new Intl.NumberFormat("de-DE").format(value)} €`,
+          },
+          splitLine: {
+            lineStyle: { color: "rgba(148, 163, 184, 0.14)" },
+          },
         },
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: {
-          color: "#9ca3af",
-          fontSize: 12,
-          formatter: (value: number) => `${new Intl.NumberFormat("de-DE").format(value)} €`,
+        {
+          type: "value",
+          gridIndex: 1,
+          min: 0,
+          max: portfolioYMax,
+          position: "left",
+          name: "Portfolio (€)",
+          nameLocation: "middle",
+          nameGap: 54,
+          nameTextStyle: {
+            color: "#93c5fd",
+            fontSize: 11,
+            fontWeight: 800,
+          },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: {
+            color: "#93a4bd",
+            fontSize: 11,
+            formatter: (value: number) => {
+              if (value >= 1_000_000) {
+                return `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 1 }).format(value / 1_000_000)} Mio. €`;
+              }
+
+              return `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(value / 1_000)}k €`;
+            },
+          },
+          splitLine: {
+            lineStyle: { color: "rgba(96, 165, 250, 0.12)" },
+          },
         },
-        splitLine: {
-          lineStyle: { color: "rgba(148, 163, 184, 0.14)" },
-        },
-      },
+      ],
       dataZoom: [
         {
           type: "slider",
+          xAxisIndex: [0, 1],
           height: 32,
           bottom: 18,
           borderColor: "rgba(148, 163, 184, 0.16)",
@@ -267,6 +369,7 @@ function App() {
         },
         {
           type: "inside",
+          xAxisIndex: [0, 1],
           filterMode: "none",
         },
       ],
@@ -274,6 +377,8 @@ function App() {
         {
           name: "Bitcoin Preis",
           type: "line",
+          xAxisIndex: 0,
+          yAxisIndex: 0,
           data: prices.map((point) => [point.timestamp, point.price]),
           showSymbol: false,
           smooth: 0.18,
@@ -288,6 +393,8 @@ function App() {
         {
           name: "Ø Kaufpreis",
           type: "line",
+          xAxisIndex: 0,
+          yAxisIndex: 0,
           data: averageCostData,
           symbol: "none",
           step: "end",
@@ -301,6 +408,8 @@ function App() {
         {
           name: "Kauf",
           type: "scatter",
+          xAxisIndex: 0,
+          yAxisIndex: 0,
           data: purchases.map((purchase) => [purchase.timestamp, purchase.quotePrice, purchase]),
           symbol: "circle",
           symbolSize: (data: unknown) => symbolSize((data as [number, number, Purchase])[2].totalCost),
@@ -313,6 +422,37 @@ function App() {
             shadowBlur: 10,
           },
           z: 8,
+        },
+        {
+          name: "Investiertes Kapital",
+          type: "line",
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: investedCapitalData,
+          symbol: "none",
+          step: "end",
+          lineStyle: {
+            color: "#60a5fa",
+            width: 2.5,
+          },
+          areaStyle: {
+            color: "rgba(96, 165, 250, 0.08)",
+          },
+          z: 3,
+        },
+        {
+          name: "Euro-Wert",
+          type: "line",
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: portfolioValueData,
+          showSymbol: false,
+          smooth: 0.18,
+          lineStyle: {
+            color: "#38bdf8",
+            width: 2.5,
+          },
+          z: 4,
         },
       ],
     };
