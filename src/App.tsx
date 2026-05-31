@@ -282,7 +282,6 @@ function App() {
                   <dt>Gesamtkosten</dt><dd>${formatEur(purchase.totalCost, 2)}</dd>
                   <dt>Kaufpreis</dt><dd>${formatEur(purchase.quotePrice || purchase.totalCost / purchase.btc, 0)}</dd>
                 </dl>
-                <small>${purchase.transactionId}</small>
               </div>
             `;
           }
@@ -544,7 +543,6 @@ function App() {
                     <dt>Gesamtkosten</dt><dd>${formatEur(purchase.totalCost, 2)}</dd>
                     <dt>Kaufpreis</dt><dd>${formatEur(purchase.quotePrice || purchase.totalCost / purchase.btc, 0)}</dd>
                   </dl>
-                  <small>${purchase.transactionId}</small>
                 </div>
               `;
             },
