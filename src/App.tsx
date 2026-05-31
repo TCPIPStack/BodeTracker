@@ -303,14 +303,38 @@ function App() {
             }
 
             const timestamp = Number(lineItems[0].data[0]);
+            const priceAtTimestamp = getChartPriceAt(timestamp);
+            const investedAtTimestamp = purchases
+              .filter((purchase) => purchase.timestamp <= timestamp)
+              .reduce((sum, purchase) => sum + purchase.totalCost, 0);
+            const btcAtTimestamp = purchases
+              .filter((purchase) => purchase.timestamp <= timestamp)
+              .reduce((sum, purchase) => sum + purchase.btc, 0);
+            const portfolioValueAtTimestamp = btcAtTimestamp * priceAtTimestamp;
+            const profitLoss = portfolioValueAtTimestamp - investedAtTimestamp;
+            const profitLossClass = profitLoss >= 0 ? "positive" : "negative";
+            const profitLossRow = `
+              <dt class="tooltip-profit-${profitLossClass}">
+                <span class="tooltip-dot profit-verlust"></span>Profit/Verlust
+              </dt>
+              <dd class="tooltip-value-${profitLossClass}">${profitLoss >= 0 ? "+" : ""}${formatEur(profitLoss, 0)}</dd>
+            `;
+            const hasBitcoinPriceRow = lineItems.some((axisItem) => axisItem.seriesName === "Bitcoin Preis");
             const rows = lineItems
               .map(
                 (axisItem) => `
-                  <dt><span class="tooltip-dot ${String(axisItem.seriesName)
-                    .toLowerCase()
-                    .replaceAll(" ", "-")
-                    .replace("ø", "avg")}"></span>${axisItem.seriesName}</dt>
-                  <dd>${formatEur(Number(axisItem.data[1]), 0)}</dd>
+                  <dt class="${axisItem.seriesName === "Bitcoin Preis" ? `tooltip-profit-${profitLossClass}` : ""}">
+                    <span class="tooltip-dot ${
+                      axisItem.seriesName === "Bitcoin Preis"
+                        ? "profit-verlust"
+                        : String(axisItem.seriesName).toLowerCase().replaceAll(" ", "-").replace("ø", "avg")
+                    }"></span>${axisItem.seriesName === "Bitcoin Preis" ? "Profit/Verlust" : axisItem.seriesName}
+                  </dt>
+                  <dd class="${axisItem.seriesName === "Bitcoin Preis" ? `tooltip-value-${profitLossClass}` : ""}">${
+                    axisItem.seriesName === "Bitcoin Preis"
+                      ? `${profitLoss >= 0 ? "+" : ""}${formatEur(profitLoss, 0)}`
+                      : formatEur(Number(axisItem.data[1]), 0)
+                  }</dd>
                 `,
               )
               .join("");
@@ -318,7 +342,7 @@ function App() {
             return `
               <div class="chart-tooltip">
                 <strong>${formatDate(timestamp)}</strong>
-                <dl>${rows}</dl>
+                <dl>${rows}${hasBitcoinPriceRow ? "" : profitLossRow}</dl>
               </div>
             `;
           }

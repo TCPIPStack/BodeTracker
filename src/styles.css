@@ -457,6 +457,17 @@ input {
   color: #ff9918;
 }
 
+.tooltip-dot.profit-verlust,
+.tooltip-profit-positive .tooltip-dot {
+  background: var(--green);
+  color: var(--green);
+}
+
+.tooltip-profit-negative .tooltip-dot {
+  background: var(--red);
+  color: var(--red);
+}
+
 .tooltip-dot.avg-kaufpreis {
   background: #20c997;
   color: #20c997;
@@ -470,6 +481,14 @@ input {
 .tooltip-dot.euro-wert {
   background: #22d3ee;
   color: #22d3ee;
+}
+
+.tooltip-value-positive {
+  color: var(--green) !important;
+}
+
+.tooltip-value-negative {
+  color: var(--red) !important;
 }
 
 .chart-tooltip.compact {
