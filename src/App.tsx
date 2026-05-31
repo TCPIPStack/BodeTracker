@@ -241,6 +241,9 @@ function App() {
         itemWidth: 22,
         itemHeight: 8,
       },
+      axisPointer: {
+        link: [{ xAxisIndex: [0, 1] }],
+      },
       tooltip: {
         trigger: "axis",
         axisPointer: {
@@ -285,13 +288,23 @@ function App() {
           }
 
           if (Array.isArray(params)) {
+            const pricePanelSeries = new Set(["Bitcoin Preis", "Ø Kaufpreis"]);
+            const portfolioPanelSeries = new Set(["Investiertes Kapital", "Euro-Wert"]);
+            const firstAxisItem = params.find((axisItem) => axisItem?.seriesName !== "Kauf");
+            const hoveredAxisIndex =
+              typeof firstAxisItem?.axisIndex === "number"
+                ? firstAxisItem.axisIndex
+                : typeof firstAxisItem?.xAxisIndex === "number"
+                  ? firstAxisItem.xAxisIndex
+                  : typeof firstAxisItem?.axisId === "string"
+                    ? firstAxisItem.axisId === "portfolio-x"
+                      ? 1
+                      : 0
+                    : undefined;
             const lineItems = params.filter(
               (axisItem) =>
                 axisItem?.seriesName !== "Kauf" &&
-                (axisItem?.seriesName === "Bitcoin Preis" ||
-                  axisItem?.seriesName === "Ø Kaufpreis" ||
-                  axisItem?.seriesName === "Investiertes Kapital" ||
-                  axisItem?.seriesName === "Euro-Wert") &&
+                (pricePanelSeries.has(axisItem?.seriesName) || portfolioPanelSeries.has(axisItem?.seriesName)) &&
                 Array.isArray(axisItem.data),
             );
 
@@ -299,15 +312,20 @@ function App() {
               return "";
             }
 
-            const timestamp = Number(lineItems[0].data[0]);
-            const isPortfolioPanel = lineItems.some(
-              (axisItem) => axisItem.seriesName === "Investiertes Kapital" || axisItem.seriesName === "Euro-Wert",
+            const isPortfolioPanel =
+              hoveredAxisIndex === 1 ||
+              (hoveredAxisIndex === undefined && portfolioPanelSeries.has(String(firstAxisItem?.seriesName)));
+            const tooltipItems = lineItems.filter((axisItem) =>
+              isPortfolioPanel
+                ? portfolioPanelSeries.has(axisItem.seriesName)
+                : pricePanelSeries.has(axisItem.seriesName),
             );
-            const tooltipItems = isPortfolioPanel
-              ? lineItems.filter((axisItem) => axisItem.seriesName !== "Bitcoin Preis")
-              : lineItems.filter(
-                  (axisItem) => axisItem.seriesName === "Bitcoin Preis" || axisItem.seriesName === "Ø Kaufpreis",
-                );
+
+            if (tooltipItems.length === 0) {
+              return "";
+            }
+
+            const timestamp = Number(tooltipItems[0].data[0]);
             const priceAtTimestamp = getChartPriceAt(timestamp);
             const investedAtTimestamp = purchases
               .filter((purchase) => purchase.timestamp <= timestamp)
@@ -350,6 +368,7 @@ function App() {
       },
       xAxis: [
         {
+          id: "price-x",
           type: "time",
           gridIndex: 0,
           axisLine: { lineStyle: { color: "#1f2937" } },
@@ -361,6 +380,7 @@ function App() {
           },
         },
         {
+          id: "portfolio-x",
           type: "time",
           gridIndex: 1,
           axisLine: { lineStyle: { color: "#1f2937" } },
