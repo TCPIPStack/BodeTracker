@@ -70,6 +70,7 @@ npm run preview
 
 - Remove the Bitcoin Reserve / Cash Reserve toggle.
 - Support additional CSV formats.
+- Add mouseover popups for the Bitcoin price line and average purchase price line.
 - Add automated tests for CSV parsing and portfolio calculations.
 - Add an explicit sample CSV schema or import validation screen.
 - Improve mobile layout polish.
