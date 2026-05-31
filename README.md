@@ -68,7 +68,6 @@ npm run preview
 
 ## To Do
 
-- Remove the Bitcoin Reserve / Cash Reserve toggle.
 - Support additional CSV formats.
 - Make loaded data survive page reloads, likely via local storage.
 - Use more distinct colors for portfolio graph indicators.

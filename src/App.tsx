@@ -583,14 +583,6 @@ function App() {
     <main className="app-shell">
       <section className="top-bar">
         <div className="left-controls">
-          <div className="reserve-toggle" aria-label="Ansicht">
-            <span className="active">Bitcoin Reserve</span>
-            <span className="switch" aria-hidden="true">
-              <span />
-            </span>
-            <span>Cash Reserve</span>
-          </div>
-
           <button
             className="privacy-toggle"
             type="button"
