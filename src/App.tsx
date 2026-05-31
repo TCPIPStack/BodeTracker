@@ -250,15 +250,17 @@ function App() {
           type: "line",
           snap: true,
           lineStyle: {
-            color: "rgba(148, 163, 184, 0.36)",
+            color: "rgba(255, 153, 24, 0.38)",
             width: 1,
           },
         },
         appendToBody: true,
-        backgroundColor: "rgba(15, 23, 42, 0.96)",
-        borderColor: "rgba(255, 255, 255, 0.14)",
+        backgroundColor: "rgba(7, 12, 22, 0.97)",
+        borderColor: "rgba(255, 122, 24, 0.34)",
         borderWidth: 1,
         padding: 14,
+        extraCssText:
+          "box-shadow: 0 18px 45px rgba(0,0,0,.36), 0 0 24px rgba(255,122,24,.12); border-radius: 8px;",
         textStyle: {
           color: "#f8fafc",
           fontFamily: "Inter, system-ui, sans-serif",
@@ -304,7 +306,10 @@ function App() {
             const rows = lineItems
               .map(
                 (axisItem) => `
-                  <dt>${axisItem.seriesName}</dt>
+                  <dt><span class="tooltip-dot ${String(axisItem.seriesName)
+                    .toLowerCase()
+                    .replaceAll(" ", "-")
+                    .replace("ø", "avg")}"></span>${axisItem.seriesName}</dt>
                   <dd>${formatEur(Number(axisItem.data[1]), 0)}</dd>
                 `,
               )

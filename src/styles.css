@@ -390,6 +390,7 @@ input {
 
 .chart-tooltip {
   min-width: 230px;
+  color: #f8fafc;
 }
 
 .chart-tooltip strong,
@@ -399,14 +400,18 @@ input {
 }
 
 .chart-tooltip strong {
-  margin-bottom: 4px;
-  color: #ffffff;
+  margin-bottom: 5px;
+  color: #ffb454;
   font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-shadow: 0 0 14px rgba(255, 122, 24, 0.28);
 }
 
 .chart-tooltip span {
-  color: #aab2c0;
+  color: #93a4b8;
   font-size: 12px;
+  font-weight: 700;
 }
 
 .chart-tooltip dl {
@@ -417,20 +422,54 @@ input {
 }
 
 .chart-tooltip dt {
-  color: #8b93a3;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #9aa8bb;
+  font-weight: 750;
 }
 
 .chart-tooltip dd {
   margin: 0;
-  color: #ffffff;
-  font-weight: 800;
+  color: #f8fafc;
+  font-weight: 900;
 }
 
 .chart-tooltip small {
   max-width: 250px;
   overflow: hidden;
-  color: #768093;
+  color: #6f7b8f;
   text-overflow: ellipsis;
+}
+
+.tooltip-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #94a3b8;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.tooltip-dot.bitcoin-preis {
+  background: #ff9918;
+  color: #ff9918;
+}
+
+.tooltip-dot.avg-kaufpreis {
+  background: #20c997;
+  color: #20c997;
+}
+
+.tooltip-dot.investiertes-kapital {
+  background: #8b5cf6;
+  color: #8b5cf6;
+}
+
+.tooltip-dot.euro-wert {
+  background: #22d3ee;
+  color: #22d3ee;
 }
 
 .chart-tooltip.compact {
