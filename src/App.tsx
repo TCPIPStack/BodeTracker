@@ -218,7 +218,7 @@ function App() {
         link: [{ xAxisIndex: "all" }],
       },
       backgroundColor: "transparent",
-      color: ["#ff9918", "#20c997", "#ff6b35", "#60a5fa", "#38bdf8"],
+      color: ["#ff9918", "#20c997", "#ff6b35", "#8b5cf6", "#22d3ee"],
       grid: [
         {
           top: 56,
@@ -386,7 +386,7 @@ function App() {
           nameLocation: "middle",
           nameGap: 54,
           nameTextStyle: {
-            color: "#93c5fd",
+            color: "#a78bfa",
             fontSize: 11,
             fontWeight: 800,
           },
@@ -404,7 +404,7 @@ function App() {
             },
           },
           splitLine: {
-            lineStyle: { color: "rgba(96, 165, 250, 0.12)" },
+            lineStyle: { color: "rgba(139, 92, 246, 0.14)" },
           },
         },
       ],
@@ -523,11 +523,11 @@ function App() {
           symbol: "none",
           step: "end",
           lineStyle: {
-            color: "#60a5fa",
+            color: "#8b5cf6",
             width: 2.5,
           },
           areaStyle: {
-            color: "rgba(96, 165, 250, 0.08)",
+            color: "rgba(139, 92, 246, 0.1)",
           },
           z: 3,
         },
@@ -540,7 +540,7 @@ function App() {
           showSymbol: false,
           smooth: 0.18,
           lineStyle: {
-            color: "#38bdf8",
+            color: "#22d3ee",
             width: 2.5,
           },
           z: 4,
