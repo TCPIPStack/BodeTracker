@@ -214,9 +214,6 @@ function App() {
 
     return {
       animationDuration: 550,
-      axisPointer: {
-        link: [{ xAxisIndex: "all" }],
-      },
       backgroundColor: "transparent",
       color: ["#ff9918", "#20c997", "#ff6b35", "#8b5cf6", "#22d3ee"],
       grid: [
