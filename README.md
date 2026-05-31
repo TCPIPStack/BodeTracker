@@ -70,7 +70,15 @@ npm run preview
 
 - Remove the Bitcoin Reserve / Cash Reserve toggle.
 - Support additional CSV formats.
+- Make loaded data survive page reloads, likely via local storage.
+- Use more distinct colors for portfolio graph indicators.
+- Improve alignment between buy indicators and the BTC price indicator.
 - Add mouseover popups for the Bitcoin price line and average purchase price line.
+- Add mouseover popups for portfolio graph indicators.
+- Remove the transaction ID from the buy indicator mouseover popup.
+- Improve the color scheme for all mouseover popups so they better match the app design.
+- In mouseover popups for invested capital, Euro value, Bitcoin price, and average purchase price, replace the Bitcoin price row with the difference between invested capital and Euro value; show positive values in green and negative values in red.
+- Package the app as Windows and macOS executables with Electron.
 - Add automated tests for CSV parsing and portfolio calculations.
 - Add an explicit sample CSV schema or import validation screen.
 - Improve mobile layout polish.
