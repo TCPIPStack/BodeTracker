@@ -89,6 +89,49 @@ function App() {
     const minCost = Math.min(...purchases.map((purchase) => purchase.totalCost), 0);
     const maxCost = Math.max(...purchases.map((purchase) => purchase.totalCost), 1);
     const activeRange = visibleRange ?? fullRange;
+    const getChartPriceAt = (timestamp: number) => {
+      if (prices.length === 0) {
+        return 0;
+      }
+
+      if (timestamp <= prices[0].timestamp) {
+        return prices[0].price;
+      }
+
+      const lastPrice = prices.at(-1)!;
+
+      if (timestamp >= lastPrice.timestamp) {
+        return lastPrice.price;
+      }
+
+      let lowIndex = 0;
+      let highIndex = prices.length - 1;
+
+      while (lowIndex <= highIndex) {
+        const middleIndex = Math.floor((lowIndex + highIndex) / 2);
+        const middleTimestamp = prices[middleIndex].timestamp;
+
+        if (middleTimestamp === timestamp) {
+          return prices[middleIndex].price;
+        }
+
+        if (middleTimestamp < timestamp) {
+          lowIndex = middleIndex + 1;
+        } else {
+          highIndex = middleIndex - 1;
+        }
+      }
+
+      const previous = prices[Math.max(0, highIndex)];
+      const next = prices[Math.min(prices.length - 1, lowIndex)];
+
+      if (!previous || !next || previous.timestamp === next.timestamp) {
+        return previous?.price ?? next?.price ?? 0;
+      }
+
+      const progress = (timestamp - previous.timestamp) / (next.timestamp - previous.timestamp);
+      return previous.price + (next.price - previous.price) * progress;
+    };
     const averageCostData: [number, number][] = [];
     const investedCapitalData: [number, number][] = [];
     const portfolioValueData: [number, number][] = [];
@@ -134,9 +177,14 @@ function App() {
     const visiblePurchases = activeRange
       ? purchases.filter((purchase) => purchase.timestamp >= activeRange[0] && purchase.timestamp <= activeRange[1])
       : purchases;
+    const purchaseChartData = purchases.map((purchase) => [
+      purchase.timestamp,
+      getChartPriceAt(purchase.timestamp),
+      purchase,
+    ]);
     const yValues = [
       ...visiblePrices.map((point) => point.price),
-      ...visiblePurchases.map((purchase) => purchase.quotePrice || purchase.totalCost / purchase.btc),
+      ...visiblePurchases.map((purchase) => getChartPriceAt(purchase.timestamp)),
       ...averageCostData
         .filter((point) => !activeRange || (point[0] >= activeRange[0] && point[0] <= activeRange[1]))
         .map((point) => point[1]),
@@ -410,7 +458,7 @@ function App() {
           type: "scatter",
           xAxisIndex: 0,
           yAxisIndex: 0,
-          data: purchases.map((purchase) => [purchase.timestamp, purchase.quotePrice, purchase]),
+          data: purchaseChartData,
           symbol: "circle",
           symbolSize: (data: unknown) => symbolSize((data as [number, number, Purchase])[2].totalCost),
           itemStyle: {
