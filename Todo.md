@@ -4,7 +4,6 @@
 
 - Support additional CSV formats.
 - Add an explicit sample CSV schema or import validation screen.
-- Remove the transaction ID from the buy indicator mouseover popup.
 
 ## Persistence and offline use
 
