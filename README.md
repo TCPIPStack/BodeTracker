@@ -2,6 +2,8 @@
 
 BodeTracker is a local browser app for visualizing Bitcoin purchases on a BTC/EUR chart. It imports a local CSV transaction history in the browser, plots purchase events as orange circles, and shows portfolio metrics for the selected time range.
 
+![BodeTracker chart screenshot](docs/bodetracker-screenshot.jpg)
+
 No CSV data is persisted, uploaded, or committed to this repository.
 
 ## Requirements
