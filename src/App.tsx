@@ -1,6 +1,7 @@
 import ReactECharts, { type EChartsOption } from "echarts-for-react";
 import { AlertCircle, Bitcoin, Eye, EyeOff, FileUp, RefreshCw } from "lucide-react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import sampleTransactionsCsv from "../examples/sample-transactions.csv?raw";
 import { parsePurchasesCsv } from "./csv";
 import { formatBtc, formatDate, formatEur, formatPercent, formatRangeDate } from "./format";
 import { fetchBitcoinPrices } from "./market";
@@ -14,6 +15,7 @@ const DEFAULT_RANGE_LABEL = "CSV laden";
 function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const chartRef = useRef<ReactECharts | null>(null);
+  const loadRequestId = useRef(0);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [prices, setPrices] = useState<PricePoint[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("idle");
@@ -35,6 +37,52 @@ function App() {
     [fullRange, prices, purchases, visibleRange],
   );
 
+  const loadCsvText = useCallback(async (csvText: string, sourceName: string) => {
+    const requestId = loadRequestId.current + 1;
+    loadRequestId.current = requestId;
+
+    setLoadState("loading");
+    setError(null);
+    setFileName(sourceName);
+    setVisibleRange(null);
+
+    try {
+      const parsedPurchases = parsePurchasesCsv(csvText);
+
+      if (parsedPurchases.length === 0) {
+        throw new Error("Keine abgeschlossenen BTC-Käufe in dieser CSV gefunden.");
+      }
+
+      const firstPurchase = parsedPurchases[0].timestamp;
+      const lastPurchase = parsedPurchases.at(-1)!.timestamp;
+      const priceEnd = Math.max(Date.now(), lastPurchase);
+      const fetchedPrices = await fetchBitcoinPrices(firstPurchase, priceEnd);
+
+      if (requestId !== loadRequestId.current) {
+        return;
+      }
+
+      setPurchases(parsedPurchases);
+      setPrices(fetchedPrices);
+      setVisibleRange([fetchedPrices[0].timestamp, fetchedPrices.at(-1)!.timestamp]);
+      setLoadState("ready");
+    } catch (caughtError) {
+      if (requestId !== loadRequestId.current) {
+        return;
+      }
+
+      setPurchases([]);
+      setPrices([]);
+      setVisibleRange(null);
+      setLoadState("error");
+      setError(caughtError instanceof Error ? caughtError.message : "Die CSV konnte nicht geladen werden.");
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCsvText(sampleTransactionsCsv, "Synthetische Beispieldaten");
+  }, [loadCsvText]);
+
   const rangeLabel = useMemo(() => {
     const range = visibleRange ?? fullRange;
 
@@ -52,28 +100,9 @@ function App() {
       return;
     }
 
-    setLoadState("loading");
-    setError(null);
-    setFileName(file.name);
-    setVisibleRange(null);
-
     try {
       const csvText = await file.text();
-      const parsedPurchases = parsePurchasesCsv(csvText);
-
-      if (parsedPurchases.length === 0) {
-        throw new Error("Keine abgeschlossenen BTC-Käufe in dieser CSV gefunden.");
-      }
-
-      const firstPurchase = parsedPurchases[0].timestamp;
-      const lastPurchase = parsedPurchases.at(-1)!.timestamp;
-      const priceEnd = Math.max(Date.now(), lastPurchase);
-      const fetchedPrices = await fetchBitcoinPrices(firstPurchase, priceEnd);
-
-      setPurchases(parsedPurchases);
-      setPrices(fetchedPrices);
-      setVisibleRange([fetchedPrices[0].timestamp, fetchedPrices.at(-1)!.timestamp]);
-      setLoadState("ready");
+      await loadCsvText(csvText, file.name);
     } catch (caughtError) {
       setPurchases([]);
       setPrices([]);
@@ -83,7 +112,7 @@ function App() {
     } finally {
       event.target.value = "";
     }
-  }, []);
+  }, [loadCsvText]);
 
   const chartOption = useMemo<EChartsOption>(() => {
     const minCost = Math.min(...purchases.map((purchase) => purchase.totalCost), 0);
@@ -255,10 +284,10 @@ function App() {
           },
         },
         appendToBody: true,
-        backgroundColor: "rgba(7, 12, 22, 0.97)",
+        backgroundColor: "rgba(7, 11, 20, 0.97)",
         borderColor: "rgba(255, 122, 24, 0.34)",
         borderWidth: 1,
-        padding: 14,
+        padding: 10,
         extraCssText:
           "box-shadow: 0 18px 45px rgba(0,0,0,.36), 0 0 24px rgba(255,122,24,.12); border-radius: 8px;",
         textStyle: {
@@ -272,15 +301,15 @@ function App() {
             const purchase = item.data[2] as Purchase;
 
             return `
-              <div class="chart-tooltip">
+              <div class="chart-tooltip purchase-tooltip">
                 <strong>BTC-Kauf</strong>
                 <span>${formatDate(purchase.timestamp)} · ${purchase.time.split(".")[0]}</span>
-                <dl>
-                  <dt>BTC</dt><dd>${formatBtc(purchase.btc)}</dd>
-                  <dt>Kaufbetrag</dt><dd>${formatEur(purchase.eur, 2)}</dd>
-                  <dt>Gebühr</dt><dd>${formatEur(purchase.fee, 2)}</dd>
-                  <dt>Gesamtkosten</dt><dd>${formatEur(purchase.totalCost, 2)}</dd>
-                  <dt>Kaufpreis</dt><dd>${formatEur(purchase.quotePrice || purchase.totalCost / purchase.btc, 0)}</dd>
+                <dl class="purchase-tooltip-grid">
+                  <dt class="tooltip-label-primary">BTC</dt><dd>${formatBtc(purchase.btc)}</dd>
+                  <dt class="tooltip-row-spaced">Kaufbetrag</dt><dd class="tooltip-row-spaced">${formatEur(purchase.eur, 2)}</dd>
+                  <dt>Gebühr</dt><dd class="tooltip-value-fee">${formatEur(purchase.fee, 2)}</dd>
+                  <dt class="tooltip-row-divider tooltip-label-total">Gesamtkosten</dt><dd class="tooltip-row-divider tooltip-value-total">${formatEur(purchase.totalCost, 2)}</dd>
+                  <dt class="tooltip-row-spaced">Kaufpreis</dt><dd class="tooltip-row-spaced tooltip-value-price">${formatEur(purchase.quotePrice || purchase.totalCost / purchase.btc, 0)}</dd>
                 </dl>
               </div>
             `;
@@ -533,15 +562,15 @@ function App() {
               const purchase = item.data[2] as Purchase;
 
               return `
-                <div class="chart-tooltip">
+                <div class="chart-tooltip purchase-tooltip">
                   <strong>BTC-Kauf</strong>
                   <span>${formatDate(purchase.timestamp)} · ${purchase.time.split(".")[0]}</span>
-                  <dl>
-                    <dt>BTC</dt><dd>${formatBtc(purchase.btc)}</dd>
-                    <dt>Kaufbetrag</dt><dd>${formatEur(purchase.eur, 2)}</dd>
-                    <dt>Gebühr</dt><dd>${formatEur(purchase.fee, 2)}</dd>
-                    <dt>Gesamtkosten</dt><dd>${formatEur(purchase.totalCost, 2)}</dd>
-                    <dt>Kaufpreis</dt><dd>${formatEur(purchase.quotePrice || purchase.totalCost / purchase.btc, 0)}</dd>
+                  <dl class="purchase-tooltip-grid">
+                    <dt class="tooltip-label-primary">BTC</dt><dd>${formatBtc(purchase.btc)}</dd>
+                    <dt class="tooltip-row-spaced">Kaufbetrag</dt><dd class="tooltip-row-spaced">${formatEur(purchase.eur, 2)}</dd>
+                    <dt>Gebühr</dt><dd class="tooltip-value-fee">${formatEur(purchase.fee, 2)}</dd>
+                    <dt class="tooltip-row-divider tooltip-label-total">Gesamtkosten</dt><dd class="tooltip-row-divider tooltip-value-total">${formatEur(purchase.totalCost, 2)}</dd>
+                    <dt class="tooltip-row-spaced">Kaufpreis</dt><dd class="tooltip-row-spaced tooltip-value-price">${formatEur(purchase.quotePrice || purchase.totalCost / purchase.btc, 0)}</dd>
                   </dl>
                 </div>
               `;

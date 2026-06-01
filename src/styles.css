@@ -16,6 +16,17 @@
   --orange-soft: #ff9c1a;
   --green: #20c997;
   --red: #ff6b6b;
+
+  /* Tooltip palette: tweak these first when the purchase tooltip needs a new mood. */
+  --tooltip-heading: #ffb454;
+  --tooltip-timestamp: #8fa0b8;
+  --tooltip-label: #9aa8bb;
+  --tooltip-label-strong: #c3d0e5;
+  --tooltip-value: #f5f7fb;
+  --tooltip-value-soft: #f5f7fb;
+  --tooltip-value-total: #f5f7fb;
+  --tooltip-value-price: #f5f7fb;
+  --tooltip-divider: rgba(148, 163, 184, 0.18);
 }
 
 * {
@@ -389,8 +400,9 @@ input {
 }
 
 .chart-tooltip {
-  min-width: 230px;
-  color: #f8fafc;
+  min-width: 178px;
+  color: var(--tooltip-value);
+  line-height: 1.18;
 }
 
 .chart-tooltip strong,
@@ -400,46 +412,86 @@ input {
 }
 
 .chart-tooltip strong {
-  margin-bottom: 5px;
-  color: #ffb454;
-  font-size: 15px;
-  font-weight: 900;
+  margin-bottom: 4px;
+  color: var(--tooltip-heading);
+  font-size: 14px;
+  font-weight: 850;
   letter-spacing: 0;
-  text-shadow: 0 0 14px rgba(255, 122, 24, 0.28);
+  text-shadow: 0 0 12px rgba(255, 122, 24, 0.24);
 }
 
 .chart-tooltip span {
-  color: #93a4b8;
-  font-size: 12px;
+  color: var(--tooltip-timestamp);
+  font-size: 11px;
   font-weight: 700;
 }
 
 .chart-tooltip dl {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 6px 16px;
-  margin: 12px 0 10px;
+  gap: 4px 12px;
+  margin: 8px 0 0;
 }
 
 .chart-tooltip dt {
   display: flex;
   align-items: center;
-  gap: 7px;
-  color: #9aa8bb;
-  font-weight: 750;
+  gap: 6px;
+  color: var(--tooltip-label);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .chart-tooltip dd {
   margin: 0;
-  color: #f8fafc;
-  font-weight: 900;
+  color: var(--tooltip-value);
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .chart-tooltip small {
   max-width: 250px;
   overflow: hidden;
-  color: #6f7b8f;
+  color: #79879b;
   text-overflow: ellipsis;
+}
+
+.chart-tooltip .tooltip-label-primary,
+.chart-tooltip .tooltip-label-total {
+  color: var(--tooltip-label);
+}
+
+.purchase-tooltip {
+  min-width: 230px;
+  max-width: 260px;
+}
+
+.purchase-tooltip-grid {
+  gap: 4px 12px;
+  margin-bottom: 0;
+}
+
+.chart-tooltip .tooltip-value-fee {
+  color: var(--tooltip-value-soft);
+}
+
+.chart-tooltip .tooltip-value-total {
+  color: var(--tooltip-value-total);
+  font-weight: 850;
+}
+
+.chart-tooltip .tooltip-value-price {
+  color: var(--tooltip-value-price);
+}
+
+.chart-tooltip .tooltip-row-spaced {
+  padding-top: 2px;
+}
+
+.chart-tooltip .tooltip-row-divider {
+  margin-top: 2px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
 }
 
 .tooltip-dot {

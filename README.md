@@ -30,7 +30,7 @@ Open the app:
 http://127.0.0.1:5173/
 ```
 
-Use the `CSV laden` button to select a local transaction CSV. The app currently expects a CSV with columns similar to:
+On startup, the app loads a synthetic example CSV so the chart is immediately populated. Use the `CSV laden` button to replace the example data with a local transaction CSV. The app currently expects a CSV with columns similar to:
 
 ```text
 Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Paid Currency,Received / Paid Amount,Fee currency,Fee amount,Status,Transaction ID,Address
@@ -38,7 +38,7 @@ Timezone,Date,Time,Type,Currency,Amount,Quote Currency,Quote Price,Received / Pa
 
 Only completed BTC buy transactions are visualized.
 
-An example file with synthetic data is available at:
+The automatically loaded example file with synthetic data is available at:
 
 ```text
 examples/sample-transactions.csv
