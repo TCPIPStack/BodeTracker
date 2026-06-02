@@ -9,8 +9,155 @@ import { calculateStats } from "./stats";
 import type { PricePoint, Purchase } from "./types";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
+type DesignTheme = "terminal" | "premium" | "light";
 
 const DEFAULT_RANGE_LABEL = "CSV laden";
+const DESIGN_THEME_STORAGE_KEY = "bodetracker-design-theme";
+const DESIGN_THEMES: DesignTheme[] = ["terminal", "premium", "light"];
+const DESIGN_THEME_LABELS: Record<DesignTheme, string> = {
+  terminal: "Terminal",
+  premium: "Premium",
+  light: "Light",
+};
+const LEGEND_LINE_ICON = "path://M0 3.25 L28 3.25 L28 4.75 L0 4.75 Z";
+const LEGEND_DASHED_LINE_ICON =
+  "path://M0 3.25 L7 3.25 L7 4.75 L0 4.75 Z M10.5 3.25 L17.5 3.25 L17.5 4.75 L10.5 4.75 Z M21 3.25 L28 3.25 L28 4.75 L21 4.75 Z";
+
+type ChartTheme = {
+  colors: string[];
+  legendText: string;
+  axisPointer: string;
+  tooltipBackground: string;
+  tooltipBorder: string;
+  tooltipShadow: string;
+  tooltipText: string;
+  axisLine: string;
+  axisLabel: string;
+  priceAxisName: string;
+  portfolioAxisName: string;
+  gridLine: string;
+  gridLineSubtle: string;
+  portfolioGridLine: string;
+  zoomBorder: string;
+  zoomBackground: string;
+  zoomFill: string;
+  zoomHandle: string;
+  zoomHandleBorder: string;
+  price: string;
+  average: string;
+  purchase: string;
+  purchaseStroke: string;
+  purchaseShadow: string;
+  invested: string;
+  investedArea: string;
+  value: string;
+};
+
+const CHART_THEMES: Record<DesignTheme, ChartTheme> = {
+  terminal: {
+    colors: ["#ff9918", "#1ed29a", "#ff6433", "#8b5cf6", "#22d3ee"],
+    legendText: "#b4bdcc",
+    axisPointer: "rgba(255, 153, 24, 0.38)",
+    tooltipBackground: "rgba(4, 7, 12, 0.97)",
+    tooltipBorder: "rgba(255, 138, 31, 0.4)",
+    tooltipShadow: "0 18px 44px rgba(0,0,0,.44), 0 0 26px rgba(255,138,31,.12)",
+    tooltipText: "#f8fafc",
+    axisLine: "rgba(148, 163, 184, 0.18)",
+    axisLabel: "#8591a5",
+    priceAxisName: "#d1d5db",
+    portfolioAxisName: "#a78bfa",
+    gridLine: "rgba(148, 163, 184, 0.1)",
+    gridLineSubtle: "rgba(148, 163, 184, 0.08)",
+    portfolioGridLine: "rgba(139, 92, 246, 0.14)",
+    zoomBorder: "rgba(255, 138, 31, 0.26)",
+    zoomBackground: "rgba(15, 23, 42, 0.84)",
+    zoomFill: "rgba(255, 138, 31, 0.18)",
+    zoomHandle: "#ff8a1f",
+    zoomHandleBorder: "#fff7ed",
+    price: "#ff9918",
+    average: "#1ed29a",
+    purchase: "#ff6433",
+    purchaseStroke: "#fff7ed",
+    purchaseShadow: "rgba(255, 100, 51, 0.28)",
+    invested: "#8b5cf6",
+    investedArea: "rgba(139, 92, 246, 0.1)",
+    value: "#22d3ee",
+  },
+  premium: {
+    colors: ["#f2bd58", "#7ed6ac", "#f59f43", "#a991ff", "#77d5e9"],
+    legendText: "#c5bfad",
+    axisPointer: "rgba(242, 189, 88, 0.34)",
+    tooltipBackground: "rgba(18, 18, 22, 0.98)",
+    tooltipBorder: "rgba(242, 189, 88, 0.34)",
+    tooltipShadow: "0 24px 56px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.04)",
+    tooltipText: "#fff7e6",
+    axisLine: "rgba(228, 176, 83, 0.18)",
+    axisLabel: "#9e988d",
+    priceAxisName: "#d8c49a",
+    portfolioAxisName: "#b8a5ff",
+    gridLine: "rgba(223, 211, 181, 0.11)",
+    gridLineSubtle: "rgba(223, 211, 181, 0.08)",
+    portfolioGridLine: "rgba(169, 145, 255, 0.14)",
+    zoomBorder: "rgba(242, 189, 88, 0.28)",
+    zoomBackground: "rgba(18, 18, 22, 0.9)",
+    zoomFill: "rgba(242, 189, 88, 0.2)",
+    zoomHandle: "#e4b053",
+    zoomHandleBorder: "#fff7df",
+    price: "#f2bd58",
+    average: "#7ed6ac",
+    purchase: "#f59f43",
+    purchaseStroke: "#fff7df",
+    purchaseShadow: "rgba(245, 159, 67, 0.26)",
+    invested: "#a991ff",
+    investedArea: "rgba(169, 145, 255, 0.1)",
+    value: "#77d5e9",
+  },
+  light: {
+    colors: ["#d97706", "#0f9f74", "#f97316", "#7058d8", "#0f8ca8"],
+    legendText: "#475569",
+    axisPointer: "rgba(217, 119, 6, 0.32)",
+    tooltipBackground: "#ffffff",
+    tooltipBorder: "rgba(217, 119, 6, 0.22)",
+    tooltipShadow: "0 18px 44px rgba(15,23,42,.16)",
+    tooltipText: "#182132",
+    axisLine: "rgba(15, 23, 42, 0.12)",
+    axisLabel: "#667085",
+    priceAxisName: "#334155",
+    portfolioAxisName: "#7058d8",
+    gridLine: "rgba(71, 85, 105, 0.14)",
+    gridLineSubtle: "rgba(71, 85, 105, 0.1)",
+    portfolioGridLine: "rgba(112, 88, 216, 0.13)",
+    zoomBorder: "rgba(217, 119, 6, 0.24)",
+    zoomBackground: "#eef1f5",
+    zoomFill: "rgba(217, 119, 6, 0.18)",
+    zoomHandle: "#d97706",
+    zoomHandleBorder: "#ffffff",
+    price: "#d97706",
+    average: "#0f9f74",
+    purchase: "#f97316",
+    purchaseStroke: "#ffffff",
+    purchaseShadow: "rgba(249, 115, 22, 0.22)",
+    invested: "#7058d8",
+    investedArea: "rgba(112, 88, 216, 0.08)",
+    value: "#0f8ca8",
+  },
+};
+
+const isDesignTheme = (value: string | null): value is DesignTheme =>
+  DESIGN_THEMES.includes(value as DesignTheme);
+
+const getStoredDesignTheme = (): DesignTheme => {
+  if (typeof window === "undefined") {
+    return "terminal";
+  }
+
+  try {
+    const storedTheme = window.localStorage.getItem(DESIGN_THEME_STORAGE_KEY);
+    return isDesignTheme(storedTheme) ? storedTheme : "terminal";
+  } catch {
+    return "terminal";
+  }
+};
 
 function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -23,6 +170,15 @@ function App() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [visibleRange, setVisibleRange] = useState<[number, number] | null>(null);
   const [sensitiveValuesHidden, setSensitiveValuesHidden] = useState(false);
+  const [designTheme, setDesignTheme] = useState<DesignTheme>(getStoredDesignTheme);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(DESIGN_THEME_STORAGE_KEY, designTheme);
+    } catch {
+      // Theme selection still works for the current session if storage is unavailable.
+    }
+  }, [designTheme]);
 
   const fullRange = useMemo<[number, number] | null>(() => {
     if (prices.length === 0) {
@@ -115,6 +271,9 @@ function App() {
   }, [loadCsvText]);
 
   const chartOption = useMemo<EChartsOption>(() => {
+    const chartTheme = CHART_THEMES[designTheme];
+    const tooltipClassName = `chart-tooltip tooltip-theme-${designTheme}`;
+    const purchaseTooltipClassName = `${tooltipClassName} purchase-tooltip`;
     const minCost = Math.min(...purchases.map((purchase) => purchase.totalCost), 0);
     const maxCost = Math.max(...purchases.map((purchase) => purchase.totalCost), 1);
     const activeRange = visibleRange ?? fullRange;
@@ -244,7 +403,7 @@ function App() {
     return {
       animationDuration: 550,
       backgroundColor: "transparent",
-      color: ["#ff9918", "#20c997", "#ff6b35", "#8b5cf6", "#22d3ee"],
+      color: chartTheme.colors,
       grid: [
         {
           top: 56,
@@ -262,13 +421,20 @@ function App() {
       legend: {
         top: 8,
         left: "center",
+        data: [
+          { name: "Bitcoin Preis", icon: LEGEND_LINE_ICON },
+          { name: "Ø Kaufpreis", icon: LEGEND_DASHED_LINE_ICON },
+          { name: "Kauf", icon: "circle" },
+          { name: "Investiertes Kapital", icon: LEGEND_LINE_ICON },
+          { name: "Euro-Wert", icon: LEGEND_LINE_ICON },
+        ],
         textStyle: {
-          color: "#a8b0bd",
+          color: chartTheme.legendText,
           fontSize: 13,
           fontWeight: 600,
         },
         itemWidth: 22,
-        itemHeight: 8,
+        itemHeight: 11,
       },
       axisPointer: {
         link: [{ xAxisIndex: [0, 1] }],
@@ -279,19 +445,18 @@ function App() {
           type: "line",
           snap: true,
           lineStyle: {
-            color: "rgba(255, 153, 24, 0.38)",
+            color: chartTheme.axisPointer,
             width: 1,
           },
         },
         appendToBody: true,
-        backgroundColor: "rgba(7, 11, 20, 0.97)",
-        borderColor: "rgba(255, 122, 24, 0.34)",
+        backgroundColor: chartTheme.tooltipBackground,
+        borderColor: chartTheme.tooltipBorder,
         borderWidth: 1,
         padding: 10,
-        extraCssText:
-          "box-shadow: 0 18px 45px rgba(0,0,0,.36), 0 0 24px rgba(255,122,24,.12); border-radius: 8px;",
+        extraCssText: `box-shadow: ${chartTheme.tooltipShadow}; border-radius: 8px;`,
         textStyle: {
-          color: "#f8fafc",
+          color: chartTheme.tooltipText,
           fontFamily: "Inter, system-ui, sans-serif",
         },
         formatter: (params: unknown) => {
@@ -301,7 +466,7 @@ function App() {
             const purchase = item.data[2] as Purchase;
 
             return `
-              <div class="chart-tooltip purchase-tooltip">
+              <div class="${purchaseTooltipClassName}">
                 <strong>BTC-Kauf</strong>
                 <span>${formatDate(purchase.timestamp)} · ${purchase.time.split(".")[0]}</span>
                 <dl class="purchase-tooltip-grid">
@@ -384,7 +549,7 @@ function App() {
               .join("");
 
             return `
-              <div class="chart-tooltip">
+              <div class="${tooltipClassName}">
                 <strong>${formatDate(timestamp)}</strong>
                 <dl>${rows}${isPortfolioPanel ? profitLossRow : ""}</dl>
               </div>
@@ -399,28 +564,28 @@ function App() {
           id: "price-x",
           type: "time",
           gridIndex: 0,
-          axisLine: { lineStyle: { color: "#1f2937" } },
+          axisLine: { lineStyle: { color: chartTheme.axisLine } },
           axisTick: { show: false },
           axisLabel: { show: false },
           splitLine: {
             show: true,
-            lineStyle: { color: "rgba(148, 163, 184, 0.08)" },
+            lineStyle: { color: chartTheme.gridLineSubtle },
           },
         },
         {
           id: "portfolio-x",
           type: "time",
           gridIndex: 1,
-          axisLine: { lineStyle: { color: "#1f2937" } },
+          axisLine: { lineStyle: { color: chartTheme.axisLine } },
           axisTick: { show: false },
           axisLabel: {
-            color: "#9ca3af",
+            color: chartTheme.axisLabel,
             fontSize: 12,
             margin: 14,
           },
           splitLine: {
             show: true,
-            lineStyle: { color: "rgba(148, 163, 184, 0.06)" },
+            lineStyle: { color: chartTheme.gridLineSubtle },
           },
         },
       ],
@@ -436,19 +601,19 @@ function App() {
           nameLocation: "middle",
           nameGap: 66,
           nameTextStyle: {
-            color: "#d1d5db",
+            color: chartTheme.priceAxisName,
             fontSize: 12,
             fontWeight: 700,
           },
           axisLine: { show: false },
           axisTick: { show: false },
           axisLabel: {
-            color: "#9ca3af",
+            color: chartTheme.axisLabel,
             fontSize: 12,
             formatter: (value: number) => `${new Intl.NumberFormat("de-DE").format(value)} €`,
           },
           splitLine: {
-            lineStyle: { color: "rgba(148, 163, 184, 0.14)" },
+            lineStyle: { color: chartTheme.gridLine },
           },
         },
         {
@@ -461,14 +626,14 @@ function App() {
           nameLocation: "middle",
           nameGap: 54,
           nameTextStyle: {
-            color: "#a78bfa",
+            color: chartTheme.portfolioAxisName,
             fontSize: 11,
             fontWeight: 800,
           },
           axisLine: { show: false },
           axisTick: { show: false },
           axisLabel: {
-            color: "#93a4bd",
+            color: chartTheme.axisLabel,
             fontSize: 11,
             formatter: (value: number) => {
               if (value >= 1_000_000) {
@@ -479,7 +644,7 @@ function App() {
             },
           },
           splitLine: {
-            lineStyle: { color: "rgba(139, 92, 246, 0.14)" },
+            lineStyle: { color: chartTheme.portfolioGridLine },
           },
         },
       ],
@@ -489,18 +654,18 @@ function App() {
           xAxisIndex: [0, 1],
           height: 32,
           bottom: 14,
-          borderColor: "rgba(148, 163, 184, 0.16)",
-          backgroundColor: "rgba(15, 23, 42, 0.84)",
-          fillerColor: "rgba(255, 122, 24, 0.16)",
+          borderColor: chartTheme.zoomBorder,
+          backgroundColor: chartTheme.zoomBackground,
+          fillerColor: chartTheme.zoomFill,
           handleStyle: {
-            color: "#ff7a18",
-            borderColor: "#fff",
+            color: chartTheme.zoomHandle,
+            borderColor: chartTheme.zoomHandleBorder,
           },
           moveHandleStyle: {
-            color: "#ff7a18",
+            color: chartTheme.zoomHandle,
           },
           textStyle: {
-            color: "#9ca3af",
+            color: chartTheme.axisLabel,
           },
           startValue: visibleRange?.[0],
           endValue: visibleRange?.[1],
@@ -523,7 +688,7 @@ function App() {
           showSymbol: false,
           smooth: 0.18,
           lineStyle: {
-            color: "#ff9918",
+            color: chartTheme.price,
             width: 3,
           },
           emphasis: {
@@ -539,7 +704,7 @@ function App() {
           symbol: "none",
           step: "end",
           lineStyle: {
-            color: "#20c997",
+            color: chartTheme.average,
             width: 3,
             type: "dashed",
           },
@@ -562,7 +727,7 @@ function App() {
               const purchase = item.data[2] as Purchase;
 
               return `
-                <div class="chart-tooltip purchase-tooltip">
+                <div class="${purchaseTooltipClassName}">
                   <strong>BTC-Kauf</strong>
                   <span>${formatDate(purchase.timestamp)} · ${purchase.time.split(".")[0]}</span>
                   <dl class="purchase-tooltip-grid">
@@ -579,11 +744,11 @@ function App() {
           symbol: "circle",
           symbolSize: (data: unknown) => symbolSize((data as [number, number, Purchase])[2].totalCost),
           itemStyle: {
-            color: "#ff6b35",
-            borderColor: "#ffffff",
+            color: chartTheme.purchase,
+            borderColor: chartTheme.purchaseStroke,
             borderWidth: 3,
             opacity: 0.92,
-            shadowColor: "rgba(255, 106, 53, 0.28)",
+            shadowColor: chartTheme.purchaseShadow,
             shadowBlur: 10,
           },
           z: 8,
@@ -597,11 +762,11 @@ function App() {
           symbol: "none",
           step: "end",
           lineStyle: {
-            color: "#8b5cf6",
+            color: chartTheme.invested,
             width: 2.5,
           },
           areaStyle: {
-            color: "rgba(139, 92, 246, 0.1)",
+            color: chartTheme.investedArea,
           },
           z: 3,
         },
@@ -614,14 +779,14 @@ function App() {
           showSymbol: false,
           smooth: 0.18,
           lineStyle: {
-            color: "#22d3ee",
+            color: chartTheme.value,
             width: 2.5,
           },
           z: 4,
         },
       ],
     };
-  }, [fullRange, prices, purchases, stats.averageCost, visibleRange]);
+  }, [designTheme, fullRange, prices, purchases, stats.averageCost, visibleRange]);
 
   const handleDataZoom = useCallback(() => {
     const chart = chartRef.current?.getEchartsInstance();
@@ -654,7 +819,7 @@ function App() {
   const sensitiveClassName = sensitiveValuesHidden ? "sensitive-value is-hidden" : "sensitive-value";
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell theme-${designTheme}`}>
       <section className="top-bar">
         <div className="left-controls">
           <button
@@ -671,6 +836,20 @@ function App() {
             </span>
             {sensitiveValuesHidden ? <EyeOff size={17} /> : <Eye size={17} />}
           </button>
+          <div className="theme-switcher" role="tablist" aria-label="Design Theme">
+            {DESIGN_THEMES.map((theme) => (
+              <button
+                className={`theme-tab${designTheme === theme ? " is-active" : ""}`}
+                type="button"
+                role="tab"
+                aria-selected={designTheme === theme}
+                key={theme}
+                onClick={() => setDesignTheme(theme)}
+              >
+                {DESIGN_THEME_LABELS[theme]}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="app-title" aria-label="BODETRACKER">

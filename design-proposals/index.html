@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BodeTracker Design-Lab</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="lab-header">
+      <div>
+        <p class="eyebrow">BodeTracker Design-Lab</p>
+        <h1>Drei visuelle Richtungen fuer den App-Screen</h1>
+      </div>
+      <nav class="variant-switcher" aria-label="Designvariante auswaehlen">
+        <button class="variant-tab is-active" type="button" data-target="terminal">Dark Terminal</button>
+        <button class="variant-tab" type="button" data-target="premium">Dark Premium</button>
+        <button class="variant-tab" type="button" data-target="light">Light Finance</button>
+      </nav>
+    </header>
+
+    <main class="proposal-stage">
+      <section class="proposal theme-terminal is-active" data-variant="terminal" aria-label="Dark Bitcoin Terminal">
+        <div class="proposal-notes">
+          <div>
+            <p class="eyebrow">Variante 1</p>
+            <h2>Dark Bitcoin Terminal</h2>
+          </div>
+          <p>
+            Maximaler Kontrast, klares Orange, kompakte Tooltips und eine eher technische Dashboard-Anmutung.
+          </p>
+        </div>
+        <article class="app-mockup" aria-label="BodeTracker Mockup Dark Bitcoin Terminal">
+          <div class="top-bar">
+            <button class="privacy-toggle" type="button" aria-checked="false">
+              <span class="switch"><span></span></span>
+              Werte anzeigen
+            </button>
+            <div class="brand-mark">BODETRACKER</div>
+            <div class="actions">
+              <div class="range-pill">
+                <span>Zeitraum</span>
+                <strong>31.05.2020 - 02.06.2026</strong>
+              </div>
+              <button class="file-button" type="button">CSV laden</button>
+            </div>
+          </div>
+
+          <section class="summary">
+            <div class="hero-metric">
+              <p>Profit / Verlust</p>
+              <h3>+15.553.704&nbsp;&euro;</h3>
+              <div class="metric-row">
+                <span class="btc-value">210,000000 BTC</span>
+                <span class="positive">+74,1%</span>
+              </div>
+              <small>Aktueller Euro-Wert im ausgewaehlten Zeitraum</small>
+            </div>
+            <div class="summary-cards">
+              <article>
+                <span>Investiert</span>
+                <strong>21.000.000&nbsp;&euro;</strong>
+                <small>inkl. Gebuehren</small>
+              </article>
+              <article>
+                <span>Euro-Wert</span>
+                <strong>36.553.704&nbsp;&euro;</strong>
+                <small>bei aktuellem BTC/EUR Kurs</small>
+              </article>
+              <article>
+                <span>&Oslash; Kaufpreis</span>
+                <strong>100.000&nbsp;&euro;</strong>
+                <small>gewichteter Durchschnitt</small>
+              </article>
+              <article>
+                <span>Kaeufe</span>
+                <strong>48</strong>
+                <small>synthetische Beispieldaten</small>
+              </article>
+            </div>
+          </section>
+
+          <section class="chart-card">
+            <div class="chart-legend">
+              <span><i class="line-price"></i>Bitcoin Preis</span>
+              <span><i class="line-average"></i>&Oslash; Kaufpreis</span>
+              <span><i class="line-invested"></i>Investiertes Kapital</span>
+              <span><i class="line-value"></i>Euro-Wert</span>
+            </div>
+            <div class="chart-area">
+              <svg viewBox="0 0 960 520" role="img" aria-label="Statischer Chart-Mockup">
+                <defs>
+                  <linearGradient id="terminalFill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="var(--chart-price)" stop-opacity="0.26" />
+                    <stop offset="100%" stop-color="var(--chart-price)" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+                <g class="grid-lines">
+                  <path d="M70 64H888M70 132H888M70 200H888M70 268H888M70 336H888M70 404H888" />
+                  <path d="M142 48V430M286 48V430M430 48V430M574 48V430M718 48V430M862 48V430" />
+                </g>
+                <path class="price-fill" d="M74 350 C160 310 190 364 250 292 S366 250 418 210 S548 118 614 158 S706 220 770 116 S844 84 888 76 L888 430 L74 430 Z" />
+                <path class="price-line" d="M74 350 C160 310 190 364 250 292 S366 250 418 210 S548 118 614 158 S706 220 770 116 S844 84 888 76" />
+                <path class="average-line" d="M92 382 H188 V340 H310 V294 H470 V248 H646 V212 H848" />
+                <path class="invested-line" d="M82 458 H198 V444 H315 V420 H452 V396 H628 V372 H846" />
+                <path class="value-line" d="M82 468 C190 456 266 456 340 420 S508 364 606 386 S748 336 856 286" />
+                <g class="purchase-points">
+                  <circle cx="188" cy="340" r="13" />
+                  <circle cx="310" cy="294" r="10" />
+                  <circle cx="470" cy="248" r="17" />
+                  <circle cx="646" cy="212" r="11" />
+                  <circle cx="770" cy="116" r="15" />
+                </g>
+                <g class="axis-labels">
+                  <text x="72" y="32">BTC/EUR</text>
+                  <text x="76" y="502">2020</text>
+                  <text x="292" y="502">2022</text>
+                  <text x="568" y="502">2024</text>
+                  <text x="828" y="502">2026</text>
+                </g>
+              </svg>
+              <div class="tooltip sample-tooltip primary">
+                <strong>BTC-Kauf</strong>
+                <span>14.03.2024 &middot; 11:42:09</span>
+                <dl>
+                  <dt>BTC</dt><dd>4,200000</dd>
+                  <dt>Kaufbetrag</dt><dd>420.000,00&nbsp;&euro;</dd>
+                  <dt>Gebuehr</dt><dd>1.050,00&nbsp;&euro;</dd>
+                  <dt>Gesamtkosten</dt><dd>421.050,00&nbsp;&euro;</dd>
+                  <dt>Kaufpreis</dt><dd>100.250&nbsp;&euro;</dd>
+                </dl>
+              </div>
+              <div class="tooltip sample-tooltip compact">
+                <strong>02.06.2026</strong>
+                <dl>
+                  <dt><i class="line-price"></i>Bitcoin Preis</dt><dd>174.065&nbsp;&euro;</dd>
+                  <dt><i class="line-average"></i>&Oslash; Kaufpreis</dt><dd>100.000&nbsp;&euro;</dd>
+                </dl>
+              </div>
+            </div>
+            <div class="zoom-bar"><span></span></div>
+          </section>
+        </article>
+      </section>
+
+      <section class="proposal theme-premium" data-variant="premium" aria-label="Dark Bitcoin Premium">
+        <div class="proposal-notes">
+          <div>
+            <p class="eyebrow">Variante 2</p>
+            <h2>Dark Bitcoin Premium</h2>
+          </div>
+          <p>
+            Ruhiger Graphit-Look, weichere Goldtoene, groessere Flaechen und eine hochwertigere Portfolio-Aesthetik.
+          </p>
+        </div>
+        <article class="app-mockup" aria-label="BodeTracker Mockup Dark Bitcoin Premium">
+          <div class="top-bar">
+            <button class="privacy-toggle" type="button" aria-checked="true">
+              <span class="switch"><span></span></span>
+              Werte verborgen
+            </button>
+            <div class="brand-mark">BODETRACKER</div>
+            <div class="actions">
+              <div class="range-pill">
+                <span>Zeitraum</span>
+                <strong>31.05.2020 - 02.06.2026</strong>
+              </div>
+              <button class="file-button" type="button">CSV laden</button>
+            </div>
+          </div>
+
+          <section class="summary">
+            <div class="hero-metric">
+              <p>Portfolio-Performance</p>
+              <h3>+15.553.704&nbsp;&euro;</h3>
+              <div class="metric-row">
+                <span class="btc-value">210,000000 BTC</span>
+                <span class="positive">+74,1%</span>
+              </div>
+              <small>Fokus auf Vermoegenswert, Entwicklung und Vertrauen</small>
+            </div>
+            <div class="summary-cards">
+              <article>
+                <span>Investiert</span>
+                <strong>21.000.000&nbsp;&euro;</strong>
+                <small>Kapitalbasis</small>
+              </article>
+              <article>
+                <span>Euro-Wert</span>
+                <strong>36.553.704&nbsp;&euro;</strong>
+                <small>aktueller Marktwert</small>
+              </article>
+              <article>
+                <span>&Oslash; Kaufpreis</span>
+                <strong>100.000&nbsp;&euro;</strong>
+                <small>Cost Basis</small>
+              </article>
+              <article>
+                <span>Kaeufe</span>
+                <strong>48</strong>
+                <small>Transaktionen</small>
+              </article>
+            </div>
+          </section>
+
+          <section class="chart-card">
+            <div class="chart-legend">
+              <span><i class="line-price"></i>Bitcoin Preis</span>
+              <span><i class="line-average"></i>&Oslash; Kaufpreis</span>
+              <span><i class="line-invested"></i>Investiertes Kapital</span>
+              <span><i class="line-value"></i>Euro-Wert</span>
+            </div>
+            <div class="chart-area">
+              <svg viewBox="0 0 960 520" role="img" aria-label="Statischer Chart-Mockup">
+                <defs>
+                  <linearGradient id="premiumFill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="var(--chart-price)" stop-opacity="0.22" />
+                    <stop offset="100%" stop-color="var(--chart-price)" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+                <g class="grid-lines">
+                  <path d="M70 64H888M70 132H888M70 200H888M70 268H888M70 336H888M70 404H888" />
+                  <path d="M142 48V430M286 48V430M430 48V430M574 48V430M718 48V430M862 48V430" />
+                </g>
+                <path class="price-fill" d="M74 350 C160 310 190 364 250 292 S366 250 418 210 S548 118 614 158 S706 220 770 116 S844 84 888 76 L888 430 L74 430 Z" />
+                <path class="price-line" d="M74 350 C160 310 190 364 250 292 S366 250 418 210 S548 118 614 158 S706 220 770 116 S844 84 888 76" />
+                <path class="average-line" d="M92 382 H188 V340 H310 V294 H470 V248 H646 V212 H848" />
+                <path class="invested-line" d="M82 458 H198 V444 H315 V420 H452 V396 H628 V372 H846" />
+                <path class="value-line" d="M82 468 C190 456 266 456 340 420 S508 364 606 386 S748 336 856 286" />
+                <g class="purchase-points">
+                  <circle cx="188" cy="340" r="13" />
+                  <circle cx="310" cy="294" r="10" />
+                  <circle cx="470" cy="248" r="17" />
+                  <circle cx="646" cy="212" r="11" />
+                  <circle cx="770" cy="116" r="15" />
+                </g>
+                <g class="axis-labels">
+                  <text x="72" y="32">BTC/EUR</text>
+                  <text x="76" y="502">2020</text>
+                  <text x="292" y="502">2022</text>
+                  <text x="568" y="502">2024</text>
+                  <text x="828" y="502">2026</text>
+                </g>
+              </svg>
+              <div class="tooltip sample-tooltip primary">
+                <strong>BTC-Kauf</strong>
+                <span>14.03.2024 &middot; 11:42:09</span>
+                <dl>
+                  <dt>BTC</dt><dd>4,200000</dd>
+                  <dt>Kaufbetrag</dt><dd>420.000,00&nbsp;&euro;</dd>
+                  <dt>Gebuehr</dt><dd>1.050,00&nbsp;&euro;</dd>
+                  <dt>Gesamtkosten</dt><dd>421.050,00&nbsp;&euro;</dd>
+                  <dt>Kaufpreis</dt><dd>100.250&nbsp;&euro;</dd>
+                </dl>
+              </div>
+              <div class="tooltip sample-tooltip compact">
+                <strong>02.06.2026</strong>
+                <dl>
+                  <dt><i class="line-value"></i>Euro-Wert</dt><dd>36,6 Mio.&nbsp;&euro;</dd>
+                  <dt><i class="line-invested"></i>Investiert</dt><dd>21,0 Mio.&nbsp;&euro;</dd>
+                </dl>
+              </div>
+            </div>
+            <div class="zoom-bar"><span></span></div>
+          </section>
+        </article>
+      </section>
+
+      <section class="proposal theme-light" data-variant="light" aria-label="Light Mode Finance">
+        <div class="proposal-notes">
+          <div>
+            <p class="eyebrow">Variante 3</p>
+            <h2>Light Mode Finance</h2>
+          </div>
+          <p>
+            Heller Finanzstil mit hoher Lesbarkeit, weniger Glow und dezenter Bitcoin-Farbe fuer professionelle Nutzung.
+          </p>
+        </div>
+        <article class="app-mockup" aria-label="BodeTracker Mockup Light Mode Finance">
+          <div class="top-bar">
+            <button class="privacy-toggle" type="button" aria-checked="false">
+              <span class="switch"><span></span></span>
+              Werte anzeigen
+            </button>
+            <div class="brand-mark">BODETRACKER</div>
+            <div class="actions">
+              <div class="range-pill">
+                <span>Zeitraum</span>
+                <strong>31.05.2020 - 02.06.2026</strong>
+              </div>
+              <button class="file-button" type="button">CSV laden</button>
+            </div>
+          </div>
+
+          <section class="summary">
+            <div class="hero-metric">
+              <p>Profit / Verlust</p>
+              <h3>+15.553.704&nbsp;&euro;</h3>
+              <div class="metric-row">
+                <span class="btc-value">210,000000 BTC</span>
+                <span class="positive">+74,1%</span>
+              </div>
+              <small>Ruhige Ansicht fuer laengeres Arbeiten und Reporting</small>
+            </div>
+            <div class="summary-cards">
+              <article>
+                <span>Investiert</span>
+                <strong>21.000.000&nbsp;&euro;</strong>
+                <small>inkl. Gebuehren</small>
+              </article>
+              <article>
+                <span>Euro-Wert</span>
+                <strong>36.553.704&nbsp;&euro;</strong>
+                <small>aktueller Marktwert</small>
+              </article>
+              <article>
+                <span>&Oslash; Kaufpreis</span>
+                <strong>100.000&nbsp;&euro;</strong>
+                <small>Cost Basis</small>
+              </article>
+              <article>
+                <span>Kaeufe</span>
+                <strong>48</strong>
+                <small>Transaktionen</small>
+              </article>
+            </div>
+          </section>
+
+          <section class="chart-card">
+            <div class="chart-legend">
+              <span><i class="line-price"></i>Bitcoin Preis</span>
+              <span><i class="line-average"></i>&Oslash; Kaufpreis</span>
+              <span><i class="line-invested"></i>Investiertes Kapital</span>
+              <span><i class="line-value"></i>Euro-Wert</span>
+            </div>
+            <div class="chart-area">
+              <svg viewBox="0 0 960 520" role="img" aria-label="Statischer Chart-Mockup">
+                <defs>
+                  <linearGradient id="lightFill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="var(--chart-price)" stop-opacity="0.18" />
+                    <stop offset="100%" stop-color="var(--chart-price)" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+                <g class="grid-lines">
+                  <path d="M70 64H888M70 132H888M70 200H888M70 268H888M70 336H888M70 404H888" />
+                  <path d="M142 48V430M286 48V430M430 48V430M574 48V430M718 48V430M862 48V430" />
+                </g>
+                <path class="price-fill" d="M74 350 C160 310 190 364 250 292 S366 250 418 210 S548 118 614 158 S706 220 770 116 S844 84 888 76 L888 430 L74 430 Z" />
+                <path class="price-line" d="M74 350 C160 310 190 364 250 292 S366 250 418 210 S548 118 614 158 S706 220 770 116 S844 84 888 76" />
+                <path class="average-line" d="M92 382 H188 V340 H310 V294 H470 V248 H646 V212 H848" />
+                <path class="invested-line" d="M82 458 H198 V444 H315 V420 H452 V396 H628 V372 H846" />
+                <path class="value-line" d="M82 468 C190 456 266 456 340 420 S508 364 606 386 S748 336 856 286" />
+                <g class="purchase-points">
+                  <circle cx="188" cy="340" r="13" />
+                  <circle cx="310" cy="294" r="10" />
+                  <circle cx="470" cy="248" r="17" />
+                  <circle cx="646" cy="212" r="11" />
+                  <circle cx="770" cy="116" r="15" />
+                </g>
+                <g class="axis-labels">
+                  <text x="72" y="32">BTC/EUR</text>
+                  <text x="76" y="502">2020</text>
+                  <text x="292" y="502">2022</text>
+                  <text x="568" y="502">2024</text>
+                  <text x="828" y="502">2026</text>
+                </g>
+              </svg>
+              <div class="tooltip sample-tooltip primary">
+                <strong>BTC-Kauf</strong>
+                <span>14.03.2024 &middot; 11:42:09</span>
+                <dl>
+                  <dt>BTC</dt><dd>4,200000</dd>
+                  <dt>Kaufbetrag</dt><dd>420.000,00&nbsp;&euro;</dd>
+                  <dt>Gebuehr</dt><dd>1.050,00&nbsp;&euro;</dd>
+                  <dt>Gesamtkosten</dt><dd>421.050,00&nbsp;&euro;</dd>
+                  <dt>Kaufpreis</dt><dd>100.250&nbsp;&euro;</dd>
+                </dl>
+              </div>
+              <div class="tooltip sample-tooltip compact">
+                <strong>02.06.2026</strong>
+                <dl>
+                  <dt><i class="line-price"></i>Bitcoin Preis</dt><dd>174.065&nbsp;&euro;</dd>
+                  <dt><i class="line-average"></i>&Oslash; Kaufpreis</dt><dd>100.000&nbsp;&euro;</dd>
+                </dl>
+              </div>
+            </div>
+            <div class="zoom-bar"><span></span></div>
+          </section>
+        </article>
+      </section>
+    </main>
+
+    <script src="./proposals.js"></script>
+  </body>
+</html>
