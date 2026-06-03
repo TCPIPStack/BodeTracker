@@ -1,8 +1,8 @@
 # BodeTracker
 
-BodeTracker is a local browser app for visualizing Bitcoin purchases on a BTC/EUR chart. It imports a local CSV transaction history in the browser, plots purchase events as orange circles, and shows portfolio metrics for the selected time range.
+BodeTracker is a local browser app for visualizing Bitcoin purchases on a BTC/EUR chart. It imports a local CSV transaction history in the browser, plots purchase events as orange circles, and shows portfolio metrics for the selected time range. The interface includes three selectable color schemes: Terminal, Premium, and Light.
 
-![BodeTracker chart screenshot](docs/bodetracker-screenshot.jpg)
+![BodeTracker Terminal color scheme screenshot](docs/bodetracker-screenshot.jpg)
 
 No CSV data is persisted, uploaded, or committed to this repository.
 
@@ -48,6 +48,8 @@ examples/sample-transactions.csv
 
 You can use it to test the app or as a template for converting your own transaction history into the supported format.
 
+Use the theme switcher in the top bar to choose between `Terminal`, `Premium`, and `Light`. The selected color scheme is saved locally in the browser and restored on the next visit.
+
 ## Build
 
 Create a production build:
@@ -67,6 +69,7 @@ npm run preview
 - CSV files are ignored by Git via `.gitignore`.
 - The app first tries CoinGecko for market data and falls back to Kraken if needed.
 - Sensitive values can be visually censored with the privacy toggle.
+- The active color scheme is stored only in local browser storage.
 
 ## To Do
 

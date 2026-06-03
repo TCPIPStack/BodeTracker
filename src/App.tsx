@@ -564,6 +564,8 @@ function App() {
           id: "price-x",
           type: "time",
           gridIndex: 0,
+          min: fullRange?.[0],
+          max: fullRange?.[1],
           axisLine: { lineStyle: { color: chartTheme.axisLine } },
           axisTick: { show: false },
           axisLabel: { show: false },
@@ -576,6 +578,8 @@ function App() {
           id: "portfolio-x",
           type: "time",
           gridIndex: 1,
+          min: fullRange?.[0],
+          max: fullRange?.[1],
           axisLine: { lineStyle: { color: chartTheme.axisLine } },
           axisTick: { show: false },
           axisLabel: {
