@@ -729,12 +729,12 @@ input {
   box-shadow: 0 0 10px currentColor;
 }
 
-.tooltip-dot.bitcoin-preis {
+.tooltip-dot.bitcoin-price {
   background: var(--chart-price);
   color: var(--chart-price);
 }
 
-.tooltip-dot.profit-verlust,
+.tooltip-dot.profit-loss,
 .tooltip-profit-positive .tooltip-dot {
   background: var(--green);
   color: var(--green);
@@ -745,17 +745,17 @@ input {
   color: var(--red);
 }
 
-.tooltip-dot.avg-kaufpreis {
+.tooltip-dot.average-cost {
   background: var(--chart-average);
   color: var(--chart-average);
 }
 
-.tooltip-dot.investiertes-kapital {
+.tooltip-dot.invested-capital {
   background: var(--chart-invested);
   color: var(--chart-invested);
 }
 
-.tooltip-dot.euro-wert {
+.tooltip-dot.euro-value {
   background: var(--chart-value);
   color: var(--chart-value);
 }
