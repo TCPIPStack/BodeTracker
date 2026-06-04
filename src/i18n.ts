@@ -50,6 +50,7 @@ export const translations = {
     "error.csv.loadFailed": "The CSV could not be loaded.",
     "error.market.httpFailed": "{provider} could not be loaded ({status}).",
     "error.market.noPrices": "{provider} returned no price data for this period.",
+    "error.market.providerError": "{provider} returned an error: {message}",
   },
   de: {
     "app.title": "Bitcoin Kauf-Chart",
@@ -95,6 +96,7 @@ export const translations = {
     "error.csv.loadFailed": "Die CSV konnte nicht geladen werden.",
     "error.market.httpFailed": "{provider} konnte nicht geladen werden ({status}).",
     "error.market.noPrices": "{provider} lieferte keine Kursdaten für diesen Zeitraum.",
+    "error.market.providerError": "{provider} meldete einen Fehler: {message}",
   },
 } as const;
 

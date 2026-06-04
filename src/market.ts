@@ -62,7 +62,7 @@ async function fetchKrakenPrices(fromMs: number, toMs: number): Promise<PricePoi
   const data = (await response.json()) as KrakenOhlcResponse;
 
   if (data.error.length > 0) {
-    throw new Error(data.error.join(", "));
+    throw createAppError("market.providerError", { provider: "Kraken", message: data.error.join(", ") });
   }
 
   const ohlc = Object.entries(data.result).find(([key, value]) => key !== "last" && Array.isArray(value))?.[1];

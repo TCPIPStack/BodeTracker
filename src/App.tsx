@@ -199,15 +199,19 @@ function App() {
   } = useMemo(() => createFormatters(locale), [locale]);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-    } catch {
-      // Language selection still works for the current session if storage is unavailable.
-    }
-
     document.documentElement.lang = locale;
     document.title = translate("app.title");
   }, [locale, translate]);
+
+  const handleLocaleChange = useCallback((nextLocale: Locale) => {
+    setLocale(nextLocale);
+
+    try {
+      window.localStorage.setItem(LOCALE_STORAGE_KEY, nextLocale);
+    } catch {
+      // Language selection still works for the current session if storage is unavailable.
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -929,7 +933,7 @@ function App() {
                 role="tab"
                 aria-selected={locale === availableLocale}
                 key={availableLocale}
-                onClick={() => setLocale(availableLocale)}
+                onClick={() => handleLocaleChange(availableLocale)}
               >
                 {translate(availableLocale === "en" ? "language.en" : "language.de")}
               </button>

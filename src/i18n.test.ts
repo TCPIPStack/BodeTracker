@@ -23,5 +23,11 @@ describe("i18n", () => {
     expect(translateAppError("de", new AppError("csv.invalidPurchaseRow", { row: 2 }))).toBe(
       "Ungültige Kaufzeile in der CSV bei Datensatz 2",
     );
+    expect(translateAppError("en", new AppError("market.providerError", { provider: "Kraken", message: "EGeneral" }))).toBe(
+      "Kraken returned an error: EGeneral",
+    );
+    expect(translateAppError("de", new AppError("market.providerError", { provider: "Kraken", message: "EGeneral" }))).toBe(
+      "Kraken meldete einen Fehler: EGeneral",
+    );
   });
 });

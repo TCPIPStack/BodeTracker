@@ -5,7 +5,8 @@ export type AppErrorCode =
   | "csv.noPurchases"
   | "csv.loadFailed"
   | "market.httpFailed"
-  | "market.noPrices";
+  | "market.noPrices"
+  | "market.providerError";
 
 export type AppErrorParams = Record<string, string | number>;
 
