@@ -2,8 +2,10 @@ import ReactECharts, { type EChartsOption } from "echarts-for-react";
 import { AlertCircle, Bitcoin, Eye, EyeOff, FileUp, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import sampleTransactionsCsv from "../examples/sample-transactions.csv?raw";
+import { createAppError, isAppError } from "./appError";
 import { parsePurchasesCsv } from "./csv";
-import { formatBtc, formatDate, formatEur, formatPercent, formatRangeDate } from "./format";
+import { createFormatters } from "./format";
+import { getInitialLocale, LOCALE_STORAGE_KEY, LOCALES, t, translateAppError, type Locale } from "./i18n";
 import { fetchBitcoinPrices } from "./market";
 import { calculateStats } from "./stats";
 import type { PricePoint, Purchase } from "./types";
@@ -11,7 +13,6 @@ import type { PricePoint, Purchase } from "./types";
 type LoadState = "idle" | "loading" | "ready" | "error";
 type DesignTheme = "terminal" | "premium" | "light";
 
-const DEFAULT_RANGE_LABEL = "CSV laden";
 const DESIGN_THEME_STORAGE_KEY = "bodetracker-design-theme";
 const DESIGN_THEMES: DesignTheme[] = ["terminal", "premium", "light"];
 const DESIGN_THEME_LABELS: Record<DesignTheme, string> = {
@@ -19,9 +20,18 @@ const DESIGN_THEME_LABELS: Record<DesignTheme, string> = {
   premium: "Premium",
   light: "Light",
 };
+const SAMPLE_SOURCE_ID = "__sample__";
 const LEGEND_LINE_ICON = "path://M0 3.25 L28 3.25 L28 4.75 L0 4.75 Z";
 const LEGEND_DASHED_LINE_ICON =
   "path://M0 3.25 L7 3.25 L7 4.75 L0 4.75 Z M10.5 3.25 L17.5 3.25 L17.5 4.75 L10.5 4.75 Z M21 3.25 L28 3.25 L28 4.75 L21 4.75 Z";
+
+const CHART_SERIES = {
+  bitcoinPrice: "bitcoin-price",
+  averageCost: "average-cost",
+  purchase: "purchase",
+  investedCapital: "invested-capital",
+  euroValue: "euro-value",
+} as const;
 
 type ChartTheme = {
   colors: string[];
@@ -166,11 +176,38 @@ function App() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [prices, setPrices] = useState<PricePoint[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("idle");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [visibleRange, setVisibleRange] = useState<[number, number] | null>(null);
   const [sensitiveValuesHidden, setSensitiveValuesHidden] = useState(false);
   const [designTheme, setDesignTheme] = useState<DesignTheme>(getStoredDesignTheme);
+  const [locale, setLocale] = useState<Locale>(getInitialLocale);
+
+  const translate = useCallback(
+    (key: Parameters<typeof t>[1], params?: Parameters<typeof t>[2]) => t(locale, key, params),
+    [locale],
+  );
+
+  const {
+    formatBtc,
+    formatCompactEuroAxis,
+    formatDate,
+    formatEur,
+    formatEuroAxis,
+    formatPercent,
+    formatRangeDate,
+  } = useMemo(() => createFormatters(locale), [locale]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    } catch {
+      // Language selection still works for the current session if storage is unavailable.
+    }
+
+    document.documentElement.lang = locale;
+    document.title = translate("app.title");
+  }, [locale, translate]);
 
   useEffect(() => {
     try {
@@ -206,7 +243,7 @@ function App() {
       const parsedPurchases = parsePurchasesCsv(csvText);
 
       if (parsedPurchases.length === 0) {
-        throw new Error("Keine abgeschlossenen BTC-Käufe in dieser CSV gefunden.");
+        throw createAppError("csv.noPurchases");
       }
 
       const firstPurchase = parsedPurchases[0].timestamp;
@@ -231,23 +268,23 @@ function App() {
       setPrices([]);
       setVisibleRange(null);
       setLoadState("error");
-      setError(caughtError instanceof Error ? caughtError.message : "Die CSV konnte nicht geladen werden.");
+      setError(caughtError);
     }
   }, []);
 
   useEffect(() => {
-    void loadCsvText(sampleTransactionsCsv, "Synthetische Beispieldaten");
+    void loadCsvText(sampleTransactionsCsv, SAMPLE_SOURCE_ID);
   }, [loadCsvText]);
 
   const rangeLabel = useMemo(() => {
     const range = visibleRange ?? fullRange;
 
     if (!range) {
-      return DEFAULT_RANGE_LABEL;
+      return translate("range.empty");
     }
 
     return `${formatRangeDate(range[0])} - ${formatRangeDate(range[1])}`;
-  }, [fullRange, visibleRange]);
+  }, [formatRangeDate, fullRange, translate, visibleRange]);
 
   const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -264,16 +301,60 @@ function App() {
       setPrices([]);
       setVisibleRange(null);
       setLoadState("error");
-      setError(caughtError instanceof Error ? caughtError.message : "Die CSV konnte nicht geladen werden.");
+      setError(caughtError);
     } finally {
       event.target.value = "";
     }
   }, [loadCsvText]);
 
+  const displayedSourceName = fileName === SAMPLE_SOURCE_ID ? translate("source.sample") : fileName;
+  const displayedError = useMemo(() => {
+    if (!error) {
+      return null;
+    }
+
+    if (isAppError(error)) {
+      return translateAppError(locale, error);
+    }
+
+    return error instanceof Error && error.message ? error.message : translate("error.csv.loadFailed");
+  }, [error, locale, translate]);
+
   const chartOption = useMemo<EChartsOption>(() => {
     const chartTheme = CHART_THEMES[designTheme];
     const tooltipClassName = `chart-tooltip tooltip-theme-${designTheme}`;
     const purchaseTooltipClassName = `${tooltipClassName} purchase-tooltip`;
+    const chartLabels = {
+      bitcoinPrice: translate("chart.bitcoinPrice"),
+      averageCost: translate("chart.averageCost"),
+      purchase: translate("chart.purchase"),
+      investedCapital: translate("chart.investedCapital"),
+      euroValue: translate("chart.euroValue"),
+    };
+    const seriesLabelToId = new Map<string, string>([
+      [chartLabels.bitcoinPrice, CHART_SERIES.bitcoinPrice],
+      [chartLabels.averageCost, CHART_SERIES.averageCost],
+      [chartLabels.purchase, CHART_SERIES.purchase],
+      [chartLabels.investedCapital, CHART_SERIES.investedCapital],
+      [chartLabels.euroValue, CHART_SERIES.euroValue],
+    ]);
+    const getSeriesId = (axisItem: { seriesId?: unknown; seriesName?: unknown } | null | undefined) =>
+      typeof axisItem?.seriesId === "string"
+        ? axisItem.seriesId
+        : seriesLabelToId.get(String(axisItem?.seriesName)) ?? "";
+    const purchaseTooltip = (purchase: Purchase) => `
+      <div class="${purchaseTooltipClassName}">
+        <strong>${translate("tooltip.btcPurchase")}</strong>
+        <span>${formatDate(purchase.timestamp)} · ${purchase.time.split(".")[0]}</span>
+        <dl class="purchase-tooltip-grid">
+          <dt class="tooltip-label-primary">BTC</dt><dd>${formatBtc(purchase.btc)}</dd>
+          <dt class="tooltip-row-spaced">${translate("tooltip.purchaseAmount")}</dt><dd class="tooltip-row-spaced">${formatEur(purchase.eur, 2)}</dd>
+          <dt>${translate("tooltip.fee")}</dt><dd class="tooltip-value-fee">${formatEur(purchase.fee, 2)}</dd>
+          <dt class="tooltip-row-divider tooltip-label-total">${translate("tooltip.totalCost")}</dt><dd class="tooltip-row-divider tooltip-value-total">${formatEur(purchase.totalCost, 2)}</dd>
+          <dt class="tooltip-row-spaced">${translate("tooltip.purchasePrice")}</dt><dd class="tooltip-row-spaced tooltip-value-price">${formatEur(purchase.quotePrice || purchase.totalCost / purchase.btc, 0)}</dd>
+        </dl>
+      </div>
+    `;
     const minCost = Math.min(...purchases.map((purchase) => purchase.totalCost), 0);
     const maxCost = Math.max(...purchases.map((purchase) => purchase.totalCost), 1);
     const activeRange = visibleRange ?? fullRange;
@@ -422,11 +503,11 @@ function App() {
         top: 8,
         left: "center",
         data: [
-          { name: "Bitcoin Preis", icon: LEGEND_LINE_ICON },
-          { name: "Ø Kaufpreis", icon: LEGEND_DASHED_LINE_ICON },
-          { name: "Kauf", icon: "circle" },
-          { name: "Investiertes Kapital", icon: LEGEND_LINE_ICON },
-          { name: "Euro-Wert", icon: LEGEND_LINE_ICON },
+          { name: chartLabels.bitcoinPrice, icon: LEGEND_LINE_ICON },
+          { name: chartLabels.averageCost, icon: LEGEND_DASHED_LINE_ICON },
+          { name: chartLabels.purchase, icon: "circle" },
+          { name: chartLabels.investedCapital, icon: LEGEND_LINE_ICON },
+          { name: chartLabels.euroValue, icon: LEGEND_LINE_ICON },
         ],
         textStyle: {
           color: chartTheme.legendText,
@@ -460,30 +541,33 @@ function App() {
           fontFamily: "Inter, system-ui, sans-serif",
         },
         formatter: (params: unknown) => {
-          const item = Array.isArray(params) ? params[0] : params;
+          const item = (Array.isArray(params) ? params[0] : params) as {
+            axisId?: unknown;
+            axisIndex?: unknown;
+            data?: unknown;
+            seriesId?: unknown;
+            seriesName?: unknown;
+            xAxisIndex?: unknown;
+          };
 
-          if (!Array.isArray(params) && item.seriesName === "Kauf" && Array.isArray(item.data)) {
+          if (!Array.isArray(params) && getSeriesId(item) === CHART_SERIES.purchase && Array.isArray(item.data)) {
             const purchase = item.data[2] as Purchase;
 
-            return `
-              <div class="${purchaseTooltipClassName}">
-                <strong>BTC-Kauf</strong>
-                <span>${formatDate(purchase.timestamp)} · ${purchase.time.split(".")[0]}</span>
-                <dl class="purchase-tooltip-grid">
-                  <dt class="tooltip-label-primary">BTC</dt><dd>${formatBtc(purchase.btc)}</dd>
-                  <dt class="tooltip-row-spaced">Kaufbetrag</dt><dd class="tooltip-row-spaced">${formatEur(purchase.eur, 2)}</dd>
-                  <dt>Gebühr</dt><dd class="tooltip-value-fee">${formatEur(purchase.fee, 2)}</dd>
-                  <dt class="tooltip-row-divider tooltip-label-total">Gesamtkosten</dt><dd class="tooltip-row-divider tooltip-value-total">${formatEur(purchase.totalCost, 2)}</dd>
-                  <dt class="tooltip-row-spaced">Kaufpreis</dt><dd class="tooltip-row-spaced tooltip-value-price">${formatEur(purchase.quotePrice || purchase.totalCost / purchase.btc, 0)}</dd>
-                </dl>
-              </div>
-            `;
+            return purchaseTooltip(purchase);
           }
 
           if (Array.isArray(params)) {
-            const pricePanelSeries = new Set(["Bitcoin Preis", "Ø Kaufpreis"]);
-            const portfolioPanelSeries = new Set(["Investiertes Kapital", "Euro-Wert"]);
-            const firstAxisItem = params.find((axisItem) => axisItem?.seriesName !== "Kauf");
+            const pricePanelSeries = new Set<string>([CHART_SERIES.bitcoinPrice, CHART_SERIES.averageCost]);
+            const portfolioPanelSeries = new Set<string>([CHART_SERIES.investedCapital, CHART_SERIES.euroValue]);
+            const axisItems = params as Array<{
+              axisId?: unknown;
+              axisIndex?: unknown;
+              data?: unknown;
+              seriesId?: unknown;
+              seriesName?: unknown;
+              xAxisIndex?: unknown;
+            }>;
+            const firstAxisItem = axisItems.find((axisItem) => getSeriesId(axisItem) !== CHART_SERIES.purchase);
             const hoveredAxisIndex =
               typeof firstAxisItem?.axisIndex === "number"
                 ? firstAxisItem.axisIndex
@@ -496,8 +580,8 @@ function App() {
                     : undefined;
             const lineItems = params.filter(
               (axisItem) =>
-                axisItem?.seriesName !== "Kauf" &&
-                (pricePanelSeries.has(axisItem?.seriesName) || portfolioPanelSeries.has(axisItem?.seriesName)) &&
+                getSeriesId(axisItem) !== CHART_SERIES.purchase &&
+                (pricePanelSeries.has(getSeriesId(axisItem)) || portfolioPanelSeries.has(getSeriesId(axisItem))) &&
                 Array.isArray(axisItem.data),
             );
 
@@ -507,11 +591,11 @@ function App() {
 
             const isPortfolioPanel =
               hoveredAxisIndex === 1 ||
-              (hoveredAxisIndex === undefined && portfolioPanelSeries.has(String(firstAxisItem?.seriesName)));
+              (hoveredAxisIndex === undefined && portfolioPanelSeries.has(getSeriesId(firstAxisItem)));
             const tooltipItems = lineItems.filter((axisItem) =>
               isPortfolioPanel
-                ? portfolioPanelSeries.has(axisItem.seriesName)
-                : pricePanelSeries.has(axisItem.seriesName),
+                ? portfolioPanelSeries.has(getSeriesId(axisItem))
+                : pricePanelSeries.has(getSeriesId(axisItem)),
             );
 
             if (tooltipItems.length === 0) {
@@ -531,7 +615,7 @@ function App() {
             const profitLossClass = profitLoss >= 0 ? "positive" : "negative";
             const profitLossRow = `
               <dt class="tooltip-profit-${profitLossClass}">
-                <span class="tooltip-dot profit-verlust"></span>Profit/Verlust
+                <span class="tooltip-dot profit-loss"></span>${translate("tooltip.profitLoss")}
               </dt>
               <dd class="tooltip-value-${profitLossClass}">${profitLoss >= 0 ? "+" : ""}${formatEur(profitLoss, 0)}</dd>
             `;
@@ -539,9 +623,7 @@ function App() {
               .map(
                 (axisItem) => `
                   <dt>
-                    <span class="tooltip-dot ${
-                      String(axisItem.seriesName).toLowerCase().replaceAll(" ", "-").replace("ø", "avg")
-                    }"></span>${axisItem.seriesName}
+                    <span class="tooltip-dot ${getSeriesId(axisItem)}"></span>${axisItem.seriesName}
                   </dt>
                   <dd>${formatEur(Number(axisItem.data[1]), 0)}</dd>
                 `,
@@ -601,7 +683,7 @@ function App() {
           max: yMax,
           scale: true,
           position: "right",
-          name: "Bitcoin Preis (€)",
+          name: translate("chart.priceAxis"),
           nameLocation: "middle",
           nameGap: 66,
           nameTextStyle: {
@@ -614,7 +696,7 @@ function App() {
           axisLabel: {
             color: chartTheme.axisLabel,
             fontSize: 12,
-            formatter: (value: number) => `${new Intl.NumberFormat("de-DE").format(value)} €`,
+            formatter: formatEuroAxis,
           },
           splitLine: {
             lineStyle: { color: chartTheme.gridLine },
@@ -626,7 +708,7 @@ function App() {
           min: 0,
           max: portfolioYMax,
           position: "left",
-          name: "Portfolio (€)",
+          name: translate("chart.portfolioAxis"),
           nameLocation: "middle",
           nameGap: 54,
           nameTextStyle: {
@@ -639,13 +721,7 @@ function App() {
           axisLabel: {
             color: chartTheme.axisLabel,
             fontSize: 11,
-            formatter: (value: number) => {
-              if (value >= 1_000_000) {
-                return `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 1 }).format(value / 1_000_000)} Mio. €`;
-              }
-
-              return `${new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(value / 1_000)}k €`;
-            },
+            formatter: formatCompactEuroAxis,
           },
           splitLine: {
             lineStyle: { color: chartTheme.portfolioGridLine },
@@ -684,7 +760,8 @@ function App() {
       ],
       series: [
         {
-          name: "Bitcoin Preis",
+          id: CHART_SERIES.bitcoinPrice,
+          name: chartLabels.bitcoinPrice,
           type: "line",
           xAxisIndex: 0,
           yAxisIndex: 0,
@@ -700,7 +777,8 @@ function App() {
           },
         },
         {
-          name: "Ø Kaufpreis",
+          id: CHART_SERIES.averageCost,
+          name: chartLabels.averageCost,
           type: "line",
           xAxisIndex: 0,
           yAxisIndex: 0,
@@ -714,7 +792,8 @@ function App() {
           },
         },
         {
-          name: "Kauf",
+          id: CHART_SERIES.purchase,
+          name: chartLabels.purchase,
           type: "scatter",
           xAxisIndex: 0,
           yAxisIndex: 0,
@@ -722,7 +801,7 @@ function App() {
           tooltip: {
             trigger: "item",
             formatter: (params: unknown) => {
-              const item = Array.isArray(params) ? params[0] : params;
+              const item = (Array.isArray(params) ? params[0] : params) as { data?: unknown };
 
               if (!Array.isArray(item?.data)) {
                 return "";
@@ -730,19 +809,7 @@ function App() {
 
               const purchase = item.data[2] as Purchase;
 
-              return `
-                <div class="${purchaseTooltipClassName}">
-                  <strong>BTC-Kauf</strong>
-                  <span>${formatDate(purchase.timestamp)} · ${purchase.time.split(".")[0]}</span>
-                  <dl class="purchase-tooltip-grid">
-                    <dt class="tooltip-label-primary">BTC</dt><dd>${formatBtc(purchase.btc)}</dd>
-                    <dt class="tooltip-row-spaced">Kaufbetrag</dt><dd class="tooltip-row-spaced">${formatEur(purchase.eur, 2)}</dd>
-                    <dt>Gebühr</dt><dd class="tooltip-value-fee">${formatEur(purchase.fee, 2)}</dd>
-                    <dt class="tooltip-row-divider tooltip-label-total">Gesamtkosten</dt><dd class="tooltip-row-divider tooltip-value-total">${formatEur(purchase.totalCost, 2)}</dd>
-                    <dt class="tooltip-row-spaced">Kaufpreis</dt><dd class="tooltip-row-spaced tooltip-value-price">${formatEur(purchase.quotePrice || purchase.totalCost / purchase.btc, 0)}</dd>
-                  </dl>
-                </div>
-              `;
+              return purchaseTooltip(purchase);
             },
           },
           symbol: "circle",
@@ -758,7 +825,8 @@ function App() {
           z: 8,
         },
         {
-          name: "Investiertes Kapital",
+          id: CHART_SERIES.investedCapital,
+          name: chartLabels.investedCapital,
           type: "line",
           xAxisIndex: 1,
           yAxisIndex: 1,
@@ -775,7 +843,8 @@ function App() {
           z: 3,
         },
         {
-          name: "Euro-Wert",
+          id: CHART_SERIES.euroValue,
+          name: chartLabels.euroValue,
           type: "line",
           xAxisIndex: 1,
           yAxisIndex: 1,
@@ -790,7 +859,19 @@ function App() {
         },
       ],
     };
-  }, [designTheme, fullRange, prices, purchases, stats.averageCost, visibleRange]);
+  }, [
+    designTheme,
+    formatBtc,
+    formatCompactEuroAxis,
+    formatDate,
+    formatEur,
+    formatEuroAxis,
+    fullRange,
+    prices,
+    purchases,
+    translate,
+    visibleRange,
+  ]);
 
   const handleDataZoom = useCallback(() => {
     const chart = chartRef.current?.getEchartsInstance();
@@ -830,8 +911,8 @@ function App() {
             className="privacy-toggle"
             type="button"
             role="switch"
-            title={sensitiveValuesHidden ? "Sensible Werte anzeigen" : "Sensible Werte zensieren"}
-            aria-label={sensitiveValuesHidden ? "Sensible Werte anzeigen" : "Sensible Werte zensieren"}
+            title={sensitiveValuesHidden ? translate("privacy.show") : translate("privacy.hide")}
+            aria-label={sensitiveValuesHidden ? translate("privacy.show") : translate("privacy.hide")}
             aria-checked={sensitiveValuesHidden}
             onClick={() => setSensitiveValuesHidden((isHidden) => !isHidden)}
           >
@@ -840,7 +921,21 @@ function App() {
             </span>
             {sensitiveValuesHidden ? <EyeOff size={17} /> : <Eye size={17} />}
           </button>
-          <div className="theme-switcher" role="tablist" aria-label="Design Theme">
+          <div className="theme-switcher" role="tablist" aria-label={translate("language.label")}>
+            {LOCALES.map((availableLocale) => (
+              <button
+                className={`theme-tab${locale === availableLocale ? " is-active" : ""}`}
+                type="button"
+                role="tab"
+                aria-selected={locale === availableLocale}
+                key={availableLocale}
+                onClick={() => setLocale(availableLocale)}
+              >
+                {translate(availableLocale === "en" ? "language.en" : "language.de")}
+              </button>
+            ))}
+          </div>
+          <div className="theme-switcher" role="tablist" aria-label={translate("theme.label")}>
             {DESIGN_THEMES.map((theme) => (
               <button
                 className={`theme-tab${designTheme === theme ? " is-active" : ""}`}
@@ -862,12 +957,12 @@ function App() {
 
         <div className="actions">
           <div className="range-control">
-            <span>Time Range:</span>
+            <span>{translate("range.label")}</span>
             <strong>{rangeLabel}</strong>
           </div>
           <button className="file-button" type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
             {isLoading ? <RefreshCw className="spin" size={18} /> : <FileUp size={18} />}
-            {isLoading ? "Lade..." : "CSV laden"}
+            {isLoading ? translate("file.loading") : translate("file.load")}
           </button>
           <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={handleFileChange} hidden />
         </div>
@@ -875,16 +970,18 @@ function App() {
 
       <section className="summary">
         <div className="hero-metric">
-          <p>Bitcoin Buchwert</p>
+          <p>{translate("metric.bookValue")}</p>
           <h1 className={sensitiveClassName}>{formatEur(stats.bookValue, 0)}</h1>
           <div className="metric-row">
             <span className="btc">
               <Bitcoin size={17} /> <span className={sensitiveClassName}>{formatBtc(stats.totalBtc)}</span>
             </span>
             <span>
-              Investiert: <span className={sensitiveClassName}>{formatEur(stats.invested, 0)}</span>
+              {translate("metric.invested")} <span className={sensitiveClassName}>{formatEur(stats.invested, 0)}</span>
             </span>
-            <span>Ø Kaufpreis: {formatEur(stats.averageCost, 0)}</span>
+            <span>
+              {translate("metric.averageCost")} {formatEur(stats.averageCost, 0)}
+            </span>
             <span className={stats.pnl >= 0 ? "positive" : "negative"}>
               {stats.pnl >= 0 ? "▲" : "▼"}{" "}
               <span className={sensitiveClassName}>
@@ -892,22 +989,23 @@ function App() {
               </span>
             </span>
           </div>
-          <small>{fileName ? fileName : "Noch keine CSV geladen"}</small>
+          <small>{displayedSourceName ?? translate("source.none")}</small>
         </div>
 
         <div className="summary-cards">
           <article>
-            <span>Purchase Events</span>
+            <span>{translate("metric.purchaseEvents")}</span>
             <strong>{stats.purchaseCount}</strong>
-            <small>im ausgewählten Zeitraum</small>
+            <small>{translate("metric.selectedRange")}</small>
           </article>
           <article>
-            <span>Total BTC</span>
+            <span>{translate("metric.totalBtc")}</span>
             <strong>
               <Bitcoin size={18} /> <span className={sensitiveClassName}>{formatBtc(stats.cumulativeTotalBtc)}</span>
             </strong>
             <small>
-              Gebühren: <span className={sensitiveClassName}>{formatEur(stats.cumulativeFees, 2)}</span>
+              {translate("metric.fees")}{" "}
+              <span className={sensitiveClassName}>{formatEur(stats.cumulativeFees, 2)}</span>
             </small>
           </article>
         </div>
@@ -919,11 +1017,8 @@ function App() {
             <div className="empty-icon">
               <AlertCircle size={24} />
             </div>
-            <strong>{loadState === "error" ? "CSV oder Kursdaten konnten nicht geladen werden" : "CSV laden, um den Chart zu starten"}</strong>
-            <p>
-              {error ??
-                "Wähle deine Transaktionshistorie aus. Die Datei bleibt nur in dieser Browser-Sitzung im Speicher."}
-            </p>
+            <strong>{loadState === "error" ? translate("empty.errorTitle") : translate("empty.initialTitle")}</strong>
+            <p>{displayedError ?? translate("empty.initialBody")}</p>
           </div>
         )}
 

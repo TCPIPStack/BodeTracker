@@ -1,32 +1,61 @@
-export const formatEur = (value: number, maximumFractionDigits = 0) =>
-  new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits,
-  }).format(value);
+import type { Locale } from "./i18n";
 
-export const formatBtc = (value: number) =>
-  new Intl.NumberFormat("de-DE", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 8,
-  }).format(value);
+const LOCALE_FORMATS: Record<Locale, string> = {
+  en: "en-US",
+  de: "de-DE",
+};
 
-export const formatPercent = (value: number) =>
-  new Intl.NumberFormat("de-DE", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+export const createFormatters = (locale: Locale) => {
+  const intlLocale = LOCALE_FORMATS[locale];
 
-export const formatDate = (timestamp: number) =>
-  new Intl.DateTimeFormat("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(timestamp);
+  const formatNumber = (value: number, maximumFractionDigits = 0) =>
+    new Intl.NumberFormat(intlLocale, {
+      maximumFractionDigits,
+    }).format(value);
 
-export const formatRangeDate = (timestamp: number) =>
-  new Intl.DateTimeFormat("de-DE", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(timestamp);
+  return {
+    formatEur: (value: number, maximumFractionDigits = 0) =>
+      new Intl.NumberFormat(intlLocale, {
+        style: "currency",
+        currency: "EUR",
+        maximumFractionDigits,
+      }).format(value),
+
+    formatBtc: (value: number) =>
+      new Intl.NumberFormat(intlLocale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 8,
+      }).format(value),
+
+    formatPercent: (value: number) =>
+      new Intl.NumberFormat(intlLocale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value),
+
+    formatDate: (timestamp: number) =>
+      new Intl.DateTimeFormat(intlLocale, {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }).format(timestamp),
+
+    formatRangeDate: (timestamp: number) =>
+      new Intl.DateTimeFormat(intlLocale, {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }).format(timestamp),
+
+    formatEuroAxis: (value: number) => `${formatNumber(value)} €`,
+
+    formatCompactEuroAxis: (value: number) => {
+      if (value >= 1_000_000) {
+        const suffix = locale === "de" ? "Mio. €" : "M €";
+        return `${formatNumber(value / 1_000_000, 1)} ${suffix}`;
+      }
+
+      return `${formatNumber(value / 1_000)}k €`;
+    },
+  };
+};

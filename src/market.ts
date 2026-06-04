@@ -1,3 +1,4 @@
+import { createAppError } from "./appError";
 import type { PricePoint } from "./types";
 
 interface CoinGeckoRangeResponse {
@@ -31,14 +32,14 @@ async function fetchCoinGeckoPrices(fromMs: number, toMs: number): Promise<Price
   const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(`CoinGecko konnte nicht geladen werden (${response.status})`);
+    throw createAppError("market.httpFailed", { provider: "CoinGecko", status: response.status });
   }
 
   const data = (await response.json()) as CoinGeckoRangeResponse;
   const prices = data.prices.map(([timestamp, price]) => ({ timestamp, price }));
 
   if (prices.length === 0) {
-    throw new Error("CoinGecko lieferte keine Kursdaten für diesen Zeitraum.");
+    throw createAppError("market.noPrices", { provider: "CoinGecko" });
   }
 
   return prices;
@@ -55,7 +56,7 @@ async function fetchKrakenPrices(fromMs: number, toMs: number): Promise<PricePoi
   const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(`Kraken konnte nicht geladen werden (${response.status})`);
+    throw createAppError("market.httpFailed", { provider: "Kraken", status: response.status });
   }
 
   const data = (await response.json()) as KrakenOhlcResponse;
@@ -67,7 +68,7 @@ async function fetchKrakenPrices(fromMs: number, toMs: number): Promise<PricePoi
   const ohlc = Object.entries(data.result).find(([key, value]) => key !== "last" && Array.isArray(value))?.[1];
 
   if (!Array.isArray(ohlc)) {
-    throw new Error("Kraken lieferte keine Kursdaten für diesen Zeitraum.");
+    throw createAppError("market.noPrices", { provider: "Kraken" });
   }
 
   const prices = ohlc
@@ -78,7 +79,7 @@ async function fetchKrakenPrices(fromMs: number, toMs: number): Promise<PricePoi
     .filter((point) => point.timestamp <= toMs + DAY_MS && Number.isFinite(point.price));
 
   if (prices.length === 0) {
-    throw new Error("Kraken lieferte keine Kursdaten für diesen Zeitraum.");
+    throw createAppError("market.noPrices", { provider: "Kraken" });
   }
 
   return prices;
