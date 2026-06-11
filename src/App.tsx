@@ -20,6 +20,7 @@ const DESIGN_THEME_LABELS: Record<DesignTheme, string> = {
   premium: "Premium",
   light: "Light",
 };
+const GITHUB_REPOSITORY_URL = "https://github.com/TCPIPStack/BodeTracker";
 const SAMPLE_SOURCE_ID = "__sample__";
 const IS_VERCEL_DEPLOYMENT = import.meta.env.VITE_DEPLOY_TARGET === "vercel";
 const LEGEND_LINE_ICON = "path://M0 3.25 L28 3.25 L28 4.75 L0 4.75 Z";
@@ -1011,7 +1012,13 @@ function App() {
             </div>
             <div className="privacy-dialog-content">
               <h2 id="privacy-dialog-title">{translate("file.privacyDialog.title")}</h2>
-              <p id="privacy-dialog-body">{translate("file.privacyDialog.body")}</p>
+              <p id="privacy-dialog-body">
+                {translate("file.privacyDialog.body")}{" "}
+                <a href={GITHUB_REPOSITORY_URL} target="_blank" rel="noreferrer">
+                  {translate("file.privacyDialog.repoLink")}
+                </a>
+                .
+              </p>
               <div className="privacy-dialog-actions">
                 <button className="dialog-button secondary" type="button" onClick={handlePrivacyDialogCancel}>
                   {translate("file.privacyDialog.cancel")}

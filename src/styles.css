@@ -480,6 +480,17 @@ input {
   line-height: 1.55;
 }
 
+.privacy-dialog a {
+  color: var(--accent-soft);
+  font-weight: 800;
+  text-decoration-color: color-mix(in srgb, var(--accent) 52%, transparent);
+  text-underline-offset: 3px;
+}
+
+.privacy-dialog a:hover {
+  color: var(--accent);
+}
+
 .privacy-dialog-actions {
   display: flex;
   justify-content: flex-end;
