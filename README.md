@@ -64,6 +64,21 @@ Preview the production build locally:
 npm run preview
 ```
 
+## Deploy to Vercel
+
+BodeTracker is a static Vite app and does not require a backend, database, or environment variables on Vercel.
+
+1. Push this repository to GitHub.
+2. In Vercel, choose `Add New...` -> `Project` and import the GitHub repository.
+3. Keep the project root set to the repository root.
+4. Use the Vite framework preset. The repository includes `vercel.json` so Vercel uses:
+   - Install Command: `npm ci`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+5. Deploy the project.
+
+Future pushes to the connected GitHub repository will create Vercel deployments automatically.
+
 ## Notes
 
 - CSV files are ignored by Git via `.gitignore`.
