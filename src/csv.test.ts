@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { isAppError } from "./appError";
 import { parsePurchasesCsv } from "./csv";
 
 const header =
@@ -104,23 +105,39 @@ describe("parsePurchasesCsv", () => {
     });
   });
 
-  it("throws a localized error for missing required columns", () => {
+  it("throws a structured error for missing required columns", () => {
     const invalidCsv = "Date,Time,Type\n2024-02-01,10:00:00.000,buy";
 
-    expect(() => parsePurchasesCsv(invalidCsv)).toThrow(
-      "Fehlende CSV-Spalten: Currency, Amount, Quote Currency, Quote Price, Received / Paid Amount, Fee amount, Status, Transaction ID",
-    );
+    try {
+      parsePurchasesCsv(invalidCsv);
+      throw new Error("Expected parsePurchasesCsv to throw");
+    } catch (error) {
+      expect(isAppError(error)).toBe(true);
+      if (isAppError(error)) {
+        expect(error.code).toBe("csv.missingColumns");
+        expect(error.params.columns).toBe(
+          "Currency, Amount, Quote Currency, Quote Price, Received / Paid Amount, Fee amount, Status, Transaction ID",
+        );
+      }
+    }
   });
 
-  it("throws a localized error for invalid purchase rows", () => {
-    expect(() => parsePurchasesCsv(csv(row({ date: "not-a-date" })))).toThrow(
-      "Ungültige Kaufzeile in der CSV bei Datensatz 2",
-    );
-    expect(() => parsePurchasesCsv(csv(row({ amount: "" })))).toThrow(
-      "Ungültige Kaufzeile in der CSV bei Datensatz 2",
-    );
-    expect(() => parsePurchasesCsv(csv(row({ receivedPaidAmount: "" })))).toThrow(
-      "Ungültige Kaufzeile in der CSV bei Datensatz 2",
-    );
+  it("throws a structured error for invalid purchase rows", () => {
+    for (const invalidCsv of [
+      csv(row({ date: "not-a-date" })),
+      csv(row({ amount: "" })),
+      csv(row({ receivedPaidAmount: "" })),
+    ]) {
+      try {
+        parsePurchasesCsv(invalidCsv);
+        throw new Error("Expected parsePurchasesCsv to throw");
+      } catch (error) {
+        expect(isAppError(error)).toBe(true);
+        if (isAppError(error)) {
+          expect(error.code).toBe("csv.invalidPurchaseRow");
+          expect(error.params.row).toBe(2);
+        }
+      }
+    }
   });
 });

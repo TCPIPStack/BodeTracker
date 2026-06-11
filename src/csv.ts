@@ -1,4 +1,5 @@
 import Papa from "papaparse";
+import { createAppError } from "./appError";
 import type { CsvRow, Purchase } from "./types";
 
 const REQUIRED_COLUMNS = [
@@ -31,14 +32,14 @@ export function parsePurchasesCsv(csvText: string): Purchase[] {
   });
 
   if (result.errors.length > 0) {
-    throw new Error(result.errors[0].message);
+    throw createAppError("csv.parseFailed", { message: result.errors[0].message });
   }
 
   const fields = result.meta.fields ?? [];
   const missingColumns = REQUIRED_COLUMNS.filter((column) => !fields.includes(column));
 
   if (missingColumns.length > 0) {
-    throw new Error(`Fehlende CSV-Spalten: ${missingColumns.join(", ")}`);
+    throw createAppError("csv.missingColumns", { columns: missingColumns.join(", ") });
   }
 
   return result.data
@@ -53,7 +54,7 @@ export function parsePurchasesCsv(csvText: string): Purchase[] {
       const quotePrice = toNumber(row["Quote Price"]);
 
       if (!date || Number.isNaN(timestamp) || btc <= 0 || eur <= 0) {
-        throw new Error(`Ungültige Kaufzeile in der CSV bei Datensatz ${index + 2}`);
+        throw createAppError("csv.invalidPurchaseRow", { row: index + 2 });
       }
 
       return {
