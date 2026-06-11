@@ -20,7 +20,9 @@ const DESIGN_THEME_LABELS: Record<DesignTheme, string> = {
   premium: "Premium",
   light: "Light",
 };
+const GITHUB_REPOSITORY_URL = "https://github.com/TCPIPStack/BodeTracker";
 const SAMPLE_SOURCE_ID = "__sample__";
+const IS_VERCEL_DEPLOYMENT = import.meta.env.VITE_DEPLOY_TARGET === "vercel";
 const LEGEND_LINE_ICON = "path://M0 3.25 L28 3.25 L28 4.75 L0 4.75 Z";
 const LEGEND_DASHED_LINE_ICON =
   "path://M0 3.25 L7 3.25 L7 4.75 L0 4.75 Z M10.5 3.25 L17.5 3.25 L17.5 4.75 L10.5 4.75 Z M21 3.25 L28 3.25 L28 4.75 L21 4.75 Z";
@@ -180,6 +182,7 @@ function App() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [visibleRange, setVisibleRange] = useState<[number, number] | null>(null);
   const [sensitiveValuesHidden, setSensitiveValuesHidden] = useState(false);
+  const [isPrivacyDialogOpen, setIsPrivacyDialogOpen] = useState(false);
   const [designTheme, setDesignTheme] = useState<DesignTheme>(getStoredDesignTheme);
   const [locale, setLocale] = useState<Locale>(getInitialLocale);
 
@@ -310,6 +313,28 @@ function App() {
       event.target.value = "";
     }
   }, [loadCsvText]);
+
+  const openFilePicker = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleCsvLoadClick = useCallback(() => {
+    if (IS_VERCEL_DEPLOYMENT) {
+      setIsPrivacyDialogOpen(true);
+      return;
+    }
+
+    openFilePicker();
+  }, [openFilePicker]);
+
+  const handlePrivacyDialogCancel = useCallback(() => {
+    setIsPrivacyDialogOpen(false);
+  }, []);
+
+  const handlePrivacyDialogConfirm = useCallback(() => {
+    setIsPrivacyDialogOpen(false);
+    openFilePicker();
+  }, [openFilePicker]);
 
   const displayedSourceName = fileName === SAMPLE_SOURCE_ID ? translate("source.sample") : fileName;
   const displayedError = useMemo(() => {
@@ -964,13 +989,49 @@ function App() {
             <span>{translate("range.label")}</span>
             <strong>{rangeLabel}</strong>
           </div>
-          <button className="file-button" type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoading}>
+          <button className="file-button" type="button" onClick={handleCsvLoadClick} disabled={isLoading}>
             {isLoading ? <RefreshCw className="spin" size={18} /> : <FileUp size={18} />}
             {isLoading ? translate("file.loading") : translate("file.load")}
           </button>
           <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={handleFileChange} hidden />
         </div>
       </section>
+
+      {isPrivacyDialogOpen ? (
+        <div className="dialog-backdrop" role="presentation" onClick={handlePrivacyDialogCancel}>
+          <div
+            className="privacy-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="privacy-dialog-title"
+            aria-describedby="privacy-dialog-body"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="privacy-dialog-icon" aria-hidden="true">
+              <AlertCircle size={22} />
+            </div>
+            <div className="privacy-dialog-content">
+              <h2 id="privacy-dialog-title">{translate("file.privacyDialog.title")}</h2>
+              <p id="privacy-dialog-body">
+                {translate("file.privacyDialog.body")}{" "}
+                <a href={GITHUB_REPOSITORY_URL} target="_blank" rel="noreferrer">
+                  {translate("file.privacyDialog.repoLink")}
+                </a>
+                .
+              </p>
+              <div className="privacy-dialog-actions">
+                <button className="dialog-button secondary" type="button" onClick={handlePrivacyDialogCancel}>
+                  {translate("file.privacyDialog.cancel")}
+                </button>
+                <button className="dialog-button primary" type="button" onClick={handlePrivacyDialogConfirm}>
+                  <FileUp size={17} />
+                  {translate("file.privacyDialog.confirm")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <section className="summary">
         <div className="hero-metric">
