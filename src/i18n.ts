@@ -18,6 +18,11 @@ export const translations = {
     "range.empty": "Load CSV",
     "file.loading": "Loading...",
     "file.load": "Load CSV",
+    "file.privacyDialog.title": "Before choosing a CSV",
+    "file.privacyDialog.body":
+      "This app does not read out, upload, or store your CSV data in any form. You are still responsible for which data you choose. If you want a completely private setup, run the app locally.",
+    "file.privacyDialog.cancel": "Cancel",
+    "file.privacyDialog.confirm": "Choose CSV",
     "source.sample": "Synthetic sample data",
     "source.none": "No CSV loaded yet",
     "metric.bookValue": "Bitcoin Book Value",
@@ -64,6 +69,11 @@ export const translations = {
     "range.empty": "CSV laden",
     "file.loading": "Lade...",
     "file.load": "CSV laden",
+    "file.privacyDialog.title": "Bevor du eine CSV auswählst",
+    "file.privacyDialog.body":
+      "Diese App liest deine CSV-Daten nicht aus, lädt sie nicht hoch und speichert sie in keiner Form. Du bist trotzdem selbst dafür verantwortlich, welche Daten du auswählst. Wenn du eine komplett private Variante möchtest, kannst du die App lokal ausführen.",
+    "file.privacyDialog.cancel": "Abbrechen",
+    "file.privacyDialog.confirm": "CSV auswählen",
     "source.sample": "Synthetische Beispieldaten",
     "source.none": "Noch keine CSV geladen",
     "metric.bookValue": "Bitcoin Buchwert",

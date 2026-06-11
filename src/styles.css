@@ -429,6 +429,107 @@ input {
   opacity: 0.74;
 }
 
+.dialog-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(3, 7, 12, 0.68);
+  backdrop-filter: blur(10px);
+}
+
+.privacy-dialog {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  width: min(100%, 520px);
+  border: 1px solid var(--control-border);
+  border-radius: 12px;
+  padding: 20px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--panel-strong) 94%, transparent);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38), var(--control-shadow);
+}
+
+.privacy-dialog-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  color: var(--brand);
+  background: var(--brand-bg);
+  box-shadow: var(--brand-shadow);
+}
+
+.privacy-dialog h2 {
+  margin: 0;
+  color: var(--headline);
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.privacy-dialog p {
+  margin: 10px 0 0;
+  color: var(--muted-strong);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.privacy-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.dialog-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 0 14px;
+  cursor: pointer;
+  font-weight: 800;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.dialog-button:hover {
+  transform: translateY(-1px);
+}
+
+.dialog-button.secondary {
+  border: 1px solid var(--line);
+  color: var(--muted-strong);
+  background: color-mix(in srgb, var(--panel) 78%, transparent);
+}
+
+.dialog-button.secondary:hover {
+  border-color: var(--control-border);
+  color: var(--text);
+}
+
+.dialog-button.primary {
+  border: 1px solid var(--button-border);
+  color: var(--button-text);
+  background: var(--button-bg);
+}
+
+.dialog-button.primary:hover {
+  border-color: var(--accent);
+  background: var(--button-hover);
+}
+
 .spin {
   animation: spin 900ms linear infinite;
 }
@@ -817,6 +918,23 @@ input {
   .file-button {
     width: 100%;
     justify-content: center;
+  }
+
+  .privacy-dialog {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .privacy-dialog-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .privacy-dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .dialog-button {
+    width: 100%;
   }
 
   .summary {
